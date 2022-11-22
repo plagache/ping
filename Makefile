@@ -8,10 +8,10 @@ SRCS = $(addprefix srcs/,$(SRCS))
 OBJECT = $(addprefix out/,$(SRC:.c=.o))
 
 CFLAGS = -Wall -Wextra -Werror
-CFLAGS += -g -fsanitize=address -fno-omit-frame-pointer
+# CFLAGS += -g -fsanitize=address -fno-omit-frame-pointer
 
 CC = clang
-#CC = gcc
+# CC = gcc
 
 BLUE = "\\033[36m"
 RED = "\\033[31m"
