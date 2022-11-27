@@ -19,22 +19,22 @@ int check_host_validity(char *host){
 
 
 int check_option_validity(char *opt){
-    size_t iterator;
-    iterator = 0;
+    // size_t iterator;
+    // iterator = 0;
 
     fprintf (stderr, "%s %s %s", "ping: invalid option --", opt,"Try 'ping --help' or 'ping --usage' for more information\n");
     return (0);
 }
 
 
-// tokenisation 
+// tokenisation
 // can be an option -- or -
 // can be the host
 int ft_lexer_parser(int ac, char **av){
 
     size_t arg_number;
     size_t iterator;
-    size_t opts_number;
+    // size_t opts_number;
     iterator = 0;
     arg_number = (size_t)ac;
 
