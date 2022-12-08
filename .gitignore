@@ -1,2 +1,4 @@
 /out/
 ft_ping
+.cache/
+compile_commands.json
