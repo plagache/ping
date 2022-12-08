@@ -4,25 +4,31 @@
 # include <stdint.h>
 # include <stddef.h>
 
-# define FALSE 0
-# define TRUE 1
+# define FALSE 1
+# define TRUE 0
 # define SUCCESS        0
 # define FAILURE        1
-# define PING_OPTIONS   "vh"
+
 
 
 /*
 **  Structure des options de ping
 */
 
+# define PING_OPTIONS       "vh"
+# define ON                 1
+# define OFF                0
 
-const char ping_options[3] = "vh";
+
+// const char ping_options[3] = "vh";
 
 typedef struct		s_options_ping
 {
-        unsigned int option_v: 1;
-        unsigned int option_h: 1;
+        unsigned char verbose: 1;
+        unsigned char help: 1;
 }					t_options_ping;
+
+t_options_ping options;
 
 
 #endif

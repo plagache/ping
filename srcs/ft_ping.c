@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <arpa/inet.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdint.h>
@@ -28,17 +29,25 @@ int is_an_host(char *argument){
     if (isdigit(argument[iterator]) != 0){
         fprintf(stdout, "ARG IS AN HOST [ V ] : %s\n", argument);
         fprintf(stdout, "HOST IS OF TYPE 0.0.0.0\n");
-        return 1;
+        return (EXIT_SUCCESS);
     }
+
     if (isalpha(argument[iterator]) != 0){
         fprintf(stdout, "ARG IS AN HOST [ V ] : %s\n", argument);
         fprintf(stdout, "HOST IS OF TYPE text.com\n");
-        return 1;
+        return (EXIT_SUCCESS);
     }
     fprintf(stdout, "ARG IS AN HOST [ X ] : %s\n", argument);
-    return (EXIT_SUCCESS);
+    return (EXIT_FAILURE);
 }
 
+int activate_options(char c){
+    if (c == 'v')
+        options.verbose = options.verbose | ON;
+    if (c == 'h')
+        options.help = options.help | ON;
+    return 0;
+}
 
 int parse_option(char *opt){
     size_t iterator;
@@ -48,8 +57,7 @@ int parse_option(char *opt){
 
     while (opt[iterator] != '\0') {
         if (strchr(PING_OPTIONS, opt[iterator]) != NULL)
-            fprintf(stdout, "OPTS IS VALID [ V ] : %c\n", opt[iterator]);
-            // activate options in struct;
+            activate_options(opt[iterator]);
         else {
             fprintf (stderr, "%s '%c'\n%s", "ping: invalid option --", opt[iterator],"Try 'ping --help' or 'ping --usage' for more information\n");
             return (EXIT_FAILURE);
@@ -64,10 +72,10 @@ int parse_option(char *opt){
 int is_an_option(char *argument){
 
     if (argument[0] == '-' || (argument[0] == '-' && argument[1] == '-')){
-        fprintf(stdout, "ARG IS OPTS [ V ] : %s\n", argument);
+        // fprintf(stdout, "ARG [ %s ] \\ IS / OPTS\n", argument);
         return 0;
     }
-    fprintf(stdout, "ARG IS OPTS [ X ] : %s\n", argument);
+    // fprintf(stdout, "ARG [ %s ] / IS NOT \\ OPTS\n", argument);
     return 1;
 }
 
@@ -88,21 +96,28 @@ int ft_lexer(int ac, char **av){
         //check if its on option
         if (is_an_option(av[iterator]) == 0){
             //check option validity
-            parse_option(av[iterator]);
+            if (parse_option(av[iterator]) == EXIT_FAILURE)
+                return EXIT_FAILURE;
             // activate options
         }
 
         // is this the host that we should treat ?
-        if (is_an_host(av[iterator]) == 0){
-            // if (parse_host(av[iterator])){
-            //
-            // }
+        else if (is_an_host(av[iterator]) == SUCCESS){
+            if (parse_host(av[iterator]) == EXIT_FAILURE)
+                return EXIT_FAILURE;
         }
         iterator++;
     }
+    fprintf(stdout, "--- we iterate on each arguments without failing . ---\n-- maybe a good sign --\n\n");
+    return (iterator);
+}
 
-    fprintf(stdout, "--- we iterate on each arguments. ---\n\n");
-    return (iterator - 1);
+int test_option(){
+    if (options.verbose & ON)
+        fprintf(stdout, "--- we selected -v option. ---\n\n");
+    if (options.help & ON)
+        fprintf(stdout, "--- we selected -h option. ---\n\n");
+    return 0;
 }
 
 int main(int ac, char **av){
@@ -115,7 +130,19 @@ int main(int ac, char **av){
         // fprintf (stderr, "%i\n", EOF);
         // fprintf (stderr, "%s\n", ping_options);
         // fprintf (stderr, "%i\n", ft_lexer(ac, av));
+        // test_option(VERBOSE);
+        // test_option(HELP);
+
+        // fprintf(stdout, "%lu ||| %lu\n", sizeof(t_options_ping), sizeof(unsigned int));
+        // inet_ntop(AF_INET, const void *restrict cp, char *restrict buf, socklen_t len)
+        fprintf (stderr, "error on lexer ac = %i\n", ac);
+        fprintf (stderr, "error on lexer ac = %i\n", ft_lexer(ac, av));
+        test_option();
         return (EXIT_FAILURE);
+    }
+    else if (ft_lexer(ac, av) == ac) {
+        fprintf (stderr, "lexer is ok; ac = %i\n", ft_lexer(ac, av));
+        test_option();
     }
     return (EXIT_SUCCESS);
 }
