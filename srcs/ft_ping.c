@@ -80,8 +80,10 @@ int is_an_option(char *argument){
 }
 
 // tokenisation
+// We have 3 type of token in our programme
 // can be an option -- or -
 // can be an host host(format)
+// can be the programme name (1st argument)
 int ft_lexer(int ac, char **av){
 
     size_t arg_number;
