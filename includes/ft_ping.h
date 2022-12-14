@@ -28,7 +28,17 @@ typedef struct		s_options_ping
         unsigned char help: 1;
 }					t_options_ping;
 
-t_options_ping options;
+// Parsing function
+
+int ft_lexer(int ac, char **av);
+int test_option();
+
+int is_an_option(char *argument);
+int parse_option(char *opt);
+int activate_options(char c);
+
+int is_an_host(char *argument);
+int parse_host(char *host);
 
 
 #endif
