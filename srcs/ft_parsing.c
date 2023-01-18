@@ -6,7 +6,6 @@
 
 #include "ft_ping.h"
 
-t_options_ping options_ping;
 
 // verify the range
 // range should be 0.0.0.0 to 255.255.255.255
@@ -43,11 +42,13 @@ int is_an_host(char *argument){
 }
 
 int activate_options(char c){
+
     if (c == 'v')
-        options_ping.verbose = options_ping.verbose | ON;
+        g_ping->options.verbose |= ON;
     if (c == 'h')
-        options_ping.help = options_ping.help | ON;
+        g_ping->options.help = g_ping->options.help | ON;
     return 0;
+
 }
 
 int parse_option(char *opt){
@@ -116,10 +117,12 @@ int ft_lexer(int ac, char **av){
 }
 
 int test_option(){
-    if (options_ping.verbose & ON)
+
+    if (g_ping->options.verbose & ON)
         fprintf(stdout, "--- we selected -v option. ---\n\n");
-    if (options_ping.help & ON)
+    if (g_ping->options.help & ON)
         fprintf(stdout, "--- we selected -h option. ---\n\n");
+    fprintf(stdout, "--- integer = %i. ---\n\n", g_ping->arguments_parser);
     return 0;
 }
 

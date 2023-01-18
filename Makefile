@@ -12,7 +12,7 @@ LIBDIR = libft
 LIBA = $(LIBDIR)/libft.a
 
 CFLAGS = -Wall -Wextra -Werror
-# CFLAGS += -g -fsanitize=address -fno-omit-frame-pointer
+CFLAGS += -g -fsanitize=address -fno-omit-frame-pointer
 
 CC = clang
 #CC = gcc
@@ -26,6 +26,9 @@ PURPLE = "\\033[35m"
 LNECLR = "\\33[2K\\r"
 
 all: $(NAME)
+
+static: fclean
+	intercept-build-14 make
 
 $(NAME): $(OBJECT)
 	make -s -C $(LIBDIR)

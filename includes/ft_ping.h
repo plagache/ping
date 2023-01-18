@@ -10,9 +10,8 @@
 # define FAILURE        1
 
 
-
 /*
-**  Structure des options de ping
+**  Definition des Structure de Ping
 */
 
 # define PING_OPTIONS       "vh"
@@ -20,13 +19,21 @@
 # define OFF                0
 
 
-// const char ping_options[3] = "vh";
-
 typedef struct		s_options_ping
 {
         unsigned char verbose: 1;
         unsigned char help: 1;
 }					t_options_ping;
+
+typedef struct		s_ft_ping
+{
+    int arguments_parser;
+
+    t_options_ping options;
+
+}					t_ft_ping;
+
+extern t_ft_ping *g_ping;
 
 // Parsing function
 
