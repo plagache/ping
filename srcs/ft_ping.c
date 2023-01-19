@@ -26,8 +26,10 @@ t_ft_ping *g_ping;
 int main(int ac, char **av){
 
     int                     socket;
+    int                     socket_fd;
     struct addrinfo         hints;
     struct addrinfo         *result;
+    struct addrinfo         *result_pointer;
     // struct addrinfo         *rp;
     t_ft_ping               global_ping;
 
@@ -70,23 +72,28 @@ int main(int ac, char **av){
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;    /* Allow IPv4 */
-    // hints.ai_socktype = SOCK_RAW; /* RAW socket */
-    hints.ai_socktype = SOCK_DGRAM; /* RAW socket */
+    hints.ai_socktype = 0; /* RAW socket */
+    // hints.ai_socktype = SOCK_DGRAM; /* RAW socket */
     hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
     hints.ai_protocol = 0;          /* Any protocol */
     hints.ai_canonname = NULL;
     hints.ai_addr = NULL;
     hints.ai_next = NULL;
 
-    socket = getaddrinfo(NULL, av[2], &hints, &result);
+    socket = getaddrinfo(av[2], NULL, &hints, &result);
 
     if (socket != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(socket));
         exit(EXIT_FAILURE);
     }
 
-       // socket_fd = socket(int socket_family, int socket_type, int protocol);
+    result_pointer = result;
+    while (result_pointer->ai_next){
+        result_pointer = result_pointer->ai_next;
+        socket_fd = socket(result_pointer->ai_family, result_pointer->ai_socktype, result_pointer->ai_protocol);
+    }
     // sendto(socket_fd, buf, len, flags, NULL, 0);
+    freeaddrinfo(result);           /* No longer needed */
 
     return (EXIT_SUCCESS);
 }

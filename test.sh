@@ -1,6 +1,7 @@
 # make re
 make static
 ./ft_ping -vh 8.8.8.8
+./ft_ping 8080
 # ./ft_ping 8.8.8.8
 # ./ft_ping -v -h 8.8.8.8
 # ./ft_ping -vhxptdrhv 8.8.8.8
