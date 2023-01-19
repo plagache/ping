@@ -1,19 +1,42 @@
 # ping
 
+## list
+
+- [x] Parsing
+- [ ] gestion erreur
+- [ ] package creation
+- [ ] package send
+- [ ] package received
+- [ ] fonctionnement
+
+
 ## Notes
 
 ### Allowed Function
 
 gettimeofday.
+
 exit.
+
 inet_ntop. / inet_pton.
+
 signal / alarm.
+
 socket / setsockopt.
+
+socket : create a socket file descriptor
+setsockopt : modify the socket option with a int socket fd
+
 sendto / recvmsg.
+
 getpid / getuid.
+
 getaddrinfo / freeaddrinfo.
+
 strerror / gai_strerror.
+
 printf and its family.
+
 Your libft functions
 
 ### Basic
@@ -51,3 +74,9 @@ Domain name system
 
 each time a we received a response we print it;
 
+##### ERROR
+
+
+getaddrinfo: Servname not supported for ai_socktype
+
+probably that for a sock raw. we need the address in byte so probably use -> inet_ntop

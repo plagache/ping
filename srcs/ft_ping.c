@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
 #include "ft_ping.h"
 
 t_ft_ping *g_ping;
@@ -21,7 +25,11 @@ t_ft_ping *g_ping;
 
 int main(int ac, char **av){
 
-    t_ft_ping global_ping;
+    int                     socket;
+    struct addrinfo         hints;
+    struct addrinfo         *result;
+    // struct addrinfo         *rp;
+    t_ft_ping               global_ping;
 
     g_ping = &global_ping;
 
@@ -55,5 +63,30 @@ int main(int ac, char **av){
         fprintf (stderr, "lexer is ok; ac = %i\n", g_ping->arguments_parser);
         test_option();
     }
+
+    // unsigned char buf[sizeof(struct in6_addr)];
+    // fprintf(stderr, "av[2]: %s\n", av[2]);
+    // int s = inet_pton(hints.ai_family, av[2], buf);
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;    /* Allow IPv4 */
+    // hints.ai_socktype = SOCK_RAW; /* RAW socket */
+    hints.ai_socktype = SOCK_DGRAM; /* RAW socket */
+    hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
+    hints.ai_protocol = 0;          /* Any protocol */
+    hints.ai_canonname = NULL;
+    hints.ai_addr = NULL;
+    hints.ai_next = NULL;
+
+    socket = getaddrinfo(NULL, av[2], &hints, &result);
+
+    if (socket != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(socket));
+        exit(EXIT_FAILURE);
+    }
+
+       // socket_fd = socket(int socket_family, int socket_type, int protocol);
+    // sendto(socket_fd, buf, len, flags, NULL, 0);
+
     return (EXIT_SUCCESS);
 }
