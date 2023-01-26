@@ -4,7 +4,7 @@
 
 - [x] Parsing
 - [ ] gestion erreur
-- [ ] determiner a qui ont veux envoyer la request
+- [x] determiner a qui ont veux envoyer la request
 - [ ] ICMP echo request creation
 - [ ] send
 - [ ] package received
@@ -77,10 +77,5 @@ each time a we received a response we print it;
 
 ##### ERROR
 
-
 getaddrinfo: Servname not supported for ai_socktype
-
-probably that for a sock raw. we need the address in byte so probably use -> inet_ntop
-
-
-cant use socket has a name because socket is also a function
+getaddrinfo take first the internet host and second the service

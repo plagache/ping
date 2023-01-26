@@ -4,10 +4,10 @@
 # include <stdint.h>
 # include <stddef.h>
 
-# define FALSE 1
-# define TRUE 0
-# define SUCCESS        0
+# define TRUE           0
+# define FALSE          1
 # define FAILURE        1
+# define SUCCESS        0
 
 
 /*
@@ -19,19 +19,22 @@
 # define OFF                0
 
 
-typedef struct		s_options_ping
+typedef struct          s_options_ping
 {
-        unsigned char verbose: 1;
-        unsigned char help: 1;
-}					t_options_ping;
+    unsigned char       verbose: 1;
+    unsigned char       help: 1;
+}                       t_options_ping;
 
-typedef struct		s_ft_ping
+typedef struct          s_ft_ping
 {
-    int arguments_parser;
+    int                 arguments_parser;
 
-    t_options_ping options;
+    char                *host;
 
-}					t_ft_ping;
+    struct addrinfo     *result;
+    t_options_ping      options;
+
+}                       t_ft_ping;
 
 extern t_ft_ping *g_ping;
 

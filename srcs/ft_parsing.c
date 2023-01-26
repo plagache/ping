@@ -15,7 +15,9 @@ int parse_host(char *host){
         fprintf (stderr, "%s\n", "no 'G' host ?\n");
         return (EXIT_FAILURE);
     }
-
+    else if (host) {
+        g_ping->host = host;
+    }
     return (EXIT_SUCCESS);
 }
 // 2 possible format for an host
