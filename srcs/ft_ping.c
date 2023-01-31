@@ -44,14 +44,17 @@ void sending_packets(int file_descriptor){
 
     address_data.sin_port = 0;
     address_data.sin_family = dest_address.sa_family;
-    // address_data.sin_addr = g_ping->host;
+    address_data.sin_addr = g_ping->internet_address.sin_addr;
+    address_data = g_ping->internet_address;
 
 
     ft_bzero(packet, BUF_SIZE);
 
     // ICMP ECHO_REQUEST packets
 
-    byte_send = sendto(file_descriptor, packet, sizeof(packet), MSG_CONFIRM, &dest_address, dest_address_len);
+    byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, (struct sockaddr *) &address_data, dest_address_len);
+    // byte_send = sendto(file_descriptor, packet, sizeof(packet), MSG_CONFIRM, (struct sockaddr *) &address_data, dest_address_len);
+    // byte_send = sendto(file_descriptor, packet, sizeof(packet), MSG_CONFIRM, &dest_address, dest_address_len);
 
     if (byte_send <= 0)
         fprintf (stderr, "Error : %s | on function sending packets.\n", strerror(errno));
@@ -68,21 +71,34 @@ int converter_address_binary(){
 
 
     // struct in_addr      internet_address;
-    unsigned char       internet_address_byte[sizeof(struct in_addr)];
     char internet_address_string[INET_ADDRSTRLEN];
 
 
-    s = inet_pton(AF_INET, g_ping->host, internet_address_byte); // transform a text address to binary
-    // perror("inet_pton");
-    fprintf (stderr, "this is s : %i .\n", s);
-    fprintf (stderr, "this is internet_address in byte order : %s .\n", internet_address_byte);
-    fprintf (stderr, "Error : %s | on function pton.\n", strerror(errno));
+    // s = inet_pton(AF_INET, g_ping->host, internet_address_byte); // transform a text address to binary
+
+    // fprintf (stderr, "HOST : [%s]\n", g_ping->host);
+    s = inet_pton(AF_INET, g_ping->host, &g_ping->internet_address); // transform a text address to binary
+    if (s == 0)
+        fprintf (stderr, "not a valid address for the family : %i .\n", s);
+
+    if (s == -1){
+        perror("inet_pton");
+        fprintf (stderr, "Error : %s | on function pton.\n", strerror(errno));
+    }
+
+    fprintf (stderr, "this is internet_address in byte order : [%p]\n", &g_ping->internet_address.sin_addr);
 
 
-    inet_ntop(AF_INET, internet_address_byte, internet_address_string, INET_ADDRSTRLEN);
-    // perror("inet_ntop");
-    fprintf (stderr, "this is internet_address in string : %s .\n", internet_address_byte);
-    fprintf (stderr, "Error : %s | on function ntop.\n", strerror(errno));
+    if ( g_ping->internet_address.sin_family == AF_INET)
+        fprintf (stderr, "not bad\n" );
+    // we clean this
+    memset(&internet_address_string, '\0', sizeof(internet_address_string));
+    if (inet_ntop(AF_INET, &g_ping->internet_address, internet_address_string, INET_ADDRSTRLEN) == NULL){
+        perror("inet_ntop");
+        fprintf (stderr, "Error : %s | on function ntop.\n", strerror(errno));
+    }
+
+    fprintf (stderr, "this is internet_address in string : [%s]\n", internet_address_string);
 
     return 0;
 }
@@ -106,8 +122,8 @@ int get_address_information(){
 
 
     getaddrinfo_return = getaddrinfo(g_ping->host, NULL, &hints, &g_ping->result);
-    fprintf (stderr, "address = %s\n", (char *)g_ping->result->ai_addr);
-    fprintf (stderr, "family = %i\n", g_ping->result->ai_family);
+    // fprintf (stderr, "address = %s\n", (char *)g_ping->result->ai_addr);
+    // fprintf (stderr, "family = %i\n", g_ping->result->ai_family);
 
     return getaddrinfo_return;
 }
@@ -140,7 +156,7 @@ void raw_socket_definition() {
 
 int main(int ac, char **av){
 
-    int                     getaddrinfo_return;
+    // int                     getaddrinfo_return;
     // struct addrinfo         *rp;
     t_ft_ping               global_ping;
 
@@ -155,18 +171,18 @@ int main(int ac, char **av){
         return (EXIT_FAILURE);
     }
     else if (g_ping->arguments_parser == ac) {
-        fprintf (stderr, "lexer is ok: ac = %i\n", g_ping->arguments_parser);
+        // fprintf (stderr, "lexer is ok: ac = %i\n", g_ping->arguments_parser);
     }
 
-    test_option();
+    // test_option();
 
 
-    getaddrinfo_return = get_address_information();
-
-    if (getaddrinfo_return != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(getaddrinfo_return));
-        exit(EXIT_FAILURE);
-    }
+    // getaddrinfo_return = get_address_information();
+    //
+    // if (getaddrinfo_return != 0) {
+    //     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(getaddrinfo_return));
+    //     exit(EXIT_FAILURE);
+    // }
 
 
     converter_address_binary();
