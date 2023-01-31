@@ -36,6 +36,13 @@ typedef struct          s_ft_ping
 
 }                       t_ft_ping;
 
+typedef struct          s_create_socket
+{
+    int domain;
+    int type;
+    int protocol;
+}                       t_create_socket;
+
 extern t_ft_ping *g_ping;
 
 // Parsing function

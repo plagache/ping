@@ -1,6 +1,8 @@
-# make re
-make static
-# ./ft_ping -vh 8.8.8.8
+clear
+make re
+# make static
+./ft_ping -vh 8.8.8.8
+printf "\n--------------\n"
 # ./ft_ping 0.0.0.0
 # ./ft_ping -v -h 8.8.8.8
 # ./ft_ping -vhxptdrhv 8.8.8.8

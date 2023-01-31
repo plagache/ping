@@ -4,7 +4,8 @@
 
 - [x] Parsing
 - [ ] gestion erreur
-- [x] determiner a qui ont veux envoyer la request
+- [x] determiner a qui ont veux envoyer la request | DNS getaddrinfo
+- [x] create socket
 - [ ] ICMP echo request creation
 - [ ] send
 - [ ] package received
@@ -23,17 +24,19 @@ inet_ntop. / inet_pton.
 
 signal / alarm.
 
-socket / setsockopt.
+socket create a socket file descriptor
 
-socket : create a socket file descriptor
 setsockopt : modify the socket option with a int socket fd
+setsockopt permet de set les options d'entête IP sur des socket raw
 
 sendto / recvmsg.
 
 getpid / getuid.
 
+
 getaddrinfo / freeaddrinfo.
 
+- transorm an error code (int) in a string for Human
 strerror / gai_strerror.
 
 printf and its family.
@@ -76,6 +79,8 @@ Domain name system
 each time a we received a response we print it;
 
 ##### ERROR
+
+we should read the man page of raw.
 
 getaddrinfo: Servname not supported for ai_socktype
 getaddrinfo take first the internet host and second the service

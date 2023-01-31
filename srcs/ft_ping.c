@@ -1,3 +1,4 @@
+#include <netinet/in.h>
 #include <stddef.h>
 #include <arpa/inet.h>
 #include <ctype.h>
@@ -7,6 +8,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <errno.h>
 #include <netdb.h>
 
 #include "ft_ping.h"
@@ -25,6 +27,22 @@ t_ft_ping *g_ping;
 //     fprintf(stderr, "integer in test before = %i\n", g_ping->integer);
 //
 // }
+
+int converter_address_binary(){
+
+
+    unsigned char buf[sizeof(struct in6_addr)];
+    int s;
+
+    s = inet_pton(AF_INET, g_ping->host, buf); // transform a text address to binary
+    // inet_ntop(int af, const void *restrict cp, char *restrict buf, socklen_t len)
+
+    perror("inet_pton");
+    fprintf (stderr, "this is s : %i .\n", s);
+    fprintf (stderr, "this is buff : %s .\n", buf);
+    fprintf (stderr, "Error : %s | on function create socket.\n", strerror(errno));
+    return 0;
+}
 
 int get_address_information(){
 
@@ -50,6 +68,17 @@ int get_address_information(){
     return getaddrinfo_return;
 }
 
+int create_socket(t_create_socket *info){
+
+    int                     socket_fd;
+
+    socket_fd = socket(info->domain, info->type, info->protocol);
+
+    fprintf (stderr, "Error : %s | on function create socket.\n", strerror(errno));
+
+    return socket_fd;
+}
+
 int print_result() {
 
     int                     socket_fd;
@@ -57,7 +86,9 @@ int print_result() {
     ssize_t                 byte_read;
     char                    buffer[BUF_SIZE];
     struct sockaddr         dest_address;
+    struct s_create_socket  socket_info;
     int dest_address_len;
+    struct in_addr;
     // struct addrinfo         *result;
     // struct addrinfo         *result_pointer;
     //
@@ -65,19 +96,28 @@ int print_result() {
     dest_address_len = sizeof(dest_address);
     memset(&dest_address, 0, dest_address_len);
     // dest_address->sa_data = g_ping->result->ai_addr;
-    strcpy(dest_address.sa_data, "8.8.8.8");
+    strcpy(dest_address.sa_data, g_ping->host);
     fprintf (stderr, "sa_data = %s\n", dest_address.sa_data);
            // (const char *)
     dest_address.sa_family = AF_INET;
 
+
     len = 2;
     fprintf (stderr, "result = %p\n", g_ping->result->ai_next);
     // socket_fd = socket( g_ping->result->ai_family, g_ping->result->ai_socktype, g_ping->result->ai_protocol);
-    socket_fd = socket(dest_address.sa_family, 0, 0);
-    fprintf (stderr, "socket_fd = %i\n", socket_fd);
     // strcpy("thats myshit!", (const char *)buffer);
     // fprintf (stderr, "buffer = %s\n", buffer);
     // byte_read = sendto(socket_fd, buffer, len, MSG_CONFIRM, &dest_address, dest_address_len);
+
+
+    socket_info.domain = dest_address.sa_family;
+    socket_info.type = SOCK_RAW;
+    socket_info.protocol = IPPROTO_RAW;                 // cf the man page protocols definition
+    socket_info.protocol = IPPROTO_ICMP;                 // leader gd (go to definition) for more information // from <netinet/in.h>
+    socket_fd = create_socket(&socket_info);
+
+
+
     byte_read = sendto(socket_fd, buffer, len, MSG_CONFIRM, &dest_address, dest_address_len);
     fprintf (stdout, "byte_read = %zu\n", byte_read);
     // fprintf (stderr, "byte_read = %zu\n", byte_read);
@@ -149,6 +189,8 @@ int main(int ac, char **av){
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(getaddrinfo_return));
         exit(EXIT_FAILURE);
     }
+
+    converter_address_binary();
 
     if (print_result() == -1)
         return (EXIT_FAILURE);
