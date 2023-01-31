@@ -12,37 +12,81 @@
 #include <netdb.h>
 
 #include "ft_ping.h"
+#include "libft.h"
 
 
 #define BUF_SIZE 500
 
 t_ft_ping *g_ping;
 
-// void test(){
-//
-//     fprintf(stderr, "integer in test before = %i\n", g_ping->integer);
-//
-//     g_ping->integer = 4;
-//
-//     fprintf(stderr, "integer in test before = %i\n", g_ping->integer);
-//
-// }
+
+void setting_socket_option(){
+
+    // use setsockopt
+
+}
+
+
+void sending_packets(int file_descriptor){
+
+    // declaration
+    ssize_t                 byte_send;
+    char                    packet[BUF_SIZE];
+    int                     dest_address_len;
+    struct sockaddr         dest_address;
+    struct sockaddr_in      address_data;
+
+
+    // definition dest_address
+    dest_address_len = sizeof(dest_address);
+    memset(&dest_address, 0, dest_address_len);
+    dest_address.sa_family = g_ping->socket.domain;
+
+    address_data.sin_port = 0;
+    address_data.sin_family = dest_address.sa_family;
+    // address_data.sin_addr = g_ping->host;
+
+
+    ft_bzero(packet, BUF_SIZE);
+
+    // ICMP ECHO_REQUEST packets
+
+    byte_send = sendto(file_descriptor, packet, sizeof(packet), MSG_CONFIRM, &dest_address, dest_address_len);
+
+    if (byte_send <= 0)
+        fprintf (stderr, "Error : %s | on function sending packets.\n", strerror(errno));
+
+    fprintf (stdout, "byte_read = %zu\n", byte_send);
+
+}
+
 
 int converter_address_binary(){
 
 
-    unsigned char buf[sizeof(struct in6_addr)];
     int s;
 
-    s = inet_pton(AF_INET, g_ping->host, buf); // transform a text address to binary
-    // inet_ntop(int af, const void *restrict cp, char *restrict buf, socklen_t len)
 
-    perror("inet_pton");
+    // struct in_addr      internet_address;
+    unsigned char       internet_address_byte[sizeof(struct in_addr)];
+    char internet_address_string[INET_ADDRSTRLEN];
+
+
+    s = inet_pton(AF_INET, g_ping->host, internet_address_byte); // transform a text address to binary
+    // perror("inet_pton");
     fprintf (stderr, "this is s : %i .\n", s);
-    fprintf (stderr, "this is buff : %s .\n", buf);
-    fprintf (stderr, "Error : %s | on function create socket.\n", strerror(errno));
+    fprintf (stderr, "this is internet_address in byte order : %s .\n", internet_address_byte);
+    fprintf (stderr, "Error : %s | on function pton.\n", strerror(errno));
+
+
+    inet_ntop(AF_INET, internet_address_byte, internet_address_string, INET_ADDRSTRLEN);
+    // perror("inet_ntop");
+    fprintf (stderr, "this is internet_address in string : %s .\n", internet_address_byte);
+    fprintf (stderr, "Error : %s | on function ntop.\n", strerror(errno));
+
     return 0;
 }
+
 
 int get_address_information(){
 
@@ -68,74 +112,29 @@ int get_address_information(){
     return getaddrinfo_return;
 }
 
-int create_socket(t_create_socket *info){
 
-    int                     socket_fd;
+// in order to create a file_descriptor, you have to define the socket parameter
+int create_socket_file_descriptor(t_socket *sock){
 
-    socket_fd = socket(info->domain, info->type, info->protocol);
+    sock->file_descriptor = socket(sock->domain, sock->type, sock->protocol);
 
-    fprintf (stderr, "Error : %s | on function create socket.\n", strerror(errno));
+    if (sock->file_descriptor == -1)
+        fprintf (stderr, "Error : %s | on function create socket.\n", strerror(errno));
 
-    return socket_fd;
+    fprintf (stderr, "file descriptor : [%i]\n", sock->file_descriptor);
+
+    return sock->file_descriptor;
 }
 
-int print_result() {
 
-    int                     socket_fd;
-    int                     len;
-    ssize_t                 byte_read;
-    char                    buffer[BUF_SIZE];
-    struct sockaddr         dest_address;
-    struct s_create_socket  socket_info;
-    int dest_address_len;
-    struct in_addr;
-    // struct addrinfo         *result;
-    // struct addrinfo         *result_pointer;
-    //
+void raw_socket_definition() {
 
-    dest_address_len = sizeof(dest_address);
-    memset(&dest_address, 0, dest_address_len);
-    // dest_address->sa_data = g_ping->result->ai_addr;
-    strcpy(dest_address.sa_data, g_ping->host);
-    fprintf (stderr, "sa_data = %s\n", dest_address.sa_data);
-           // (const char *)
-    dest_address.sa_family = AF_INET;
+    g_ping->socket.type = SOCK_RAW;
+    // g_ping->socket.protocol = IPPROTO_RAW;                 // cf the man page protocols definition
+    // ping send ICMP messages // are this packets ?
+    g_ping->socket.protocol = IPPROTO_ICMP;                 // leader gd (go to definition) for more information // from <netinet/in.h>
+    g_ping->socket.domain = AF_INET;                        // domain for the IPv4
 
-
-    len = 2;
-    fprintf (stderr, "result = %p\n", g_ping->result->ai_next);
-    // socket_fd = socket( g_ping->result->ai_family, g_ping->result->ai_socktype, g_ping->result->ai_protocol);
-    // strcpy("thats myshit!", (const char *)buffer);
-    // fprintf (stderr, "buffer = %s\n", buffer);
-    // byte_read = sendto(socket_fd, buffer, len, MSG_CONFIRM, &dest_address, dest_address_len);
-
-
-    socket_info.domain = dest_address.sa_family;
-    socket_info.type = SOCK_RAW;
-    socket_info.protocol = IPPROTO_RAW;                 // cf the man page protocols definition
-    socket_info.protocol = IPPROTO_ICMP;                 // leader gd (go to definition) for more information // from <netinet/in.h>
-    socket_fd = create_socket(&socket_info);
-
-
-
-    byte_read = sendto(socket_fd, buffer, len, MSG_CONFIRM, &dest_address, dest_address_len);
-    fprintf (stdout, "byte_read = %zu\n", byte_read);
-    // fprintf (stderr, "byte_read = %zu\n", byte_read);
-    // if (byte_read == -1)
-    //     return (EXIT_FAILURE);
-
-    // result_pointer = g_ping->result;
-    //
-    // while (result_pointer->ai_next != NULL){
-    //     socket_fd = socket(result_pointer->ai_family, result_pointer->ai_socktype, result_pointer->ai_protocol);
-    //     byte_read = sendto(socket_fd, buffer, len, MSG_CONFIRM, NULL, 0);
-    //     // fprintf(stderr, "byte_sent: %lu\n", byte_read);
-    //     if (byte_read == -1)
-    //         return (EXIT_FAILURE);
-    //     result_pointer = result_pointer->ai_next;
-    // }
-    return byte_read;
-    return 0;
 }
 
 
@@ -147,40 +146,19 @@ int main(int ac, char **av){
 
     g_ping = &global_ping;
 
-    // g_ping->integer = 9;
-    //
-    // test();
-    //
-    // int t = g_ping->integer;
-    //
-    // fprintf(stderr, "integer = %i\n", t);
-    //
-    // if (ac != 0){
-    //     fprintf (stderr, "%s\n", av[1]);
-    //     fprintf (stderr, "%i\n", EXIT_FAILURE);
-    //     fprintf (stderr, "%i\n", EXIT_SUCCESS);
-    //     fprintf (stderr, "%i\n", EOF);
-    // }
 
     g_ping->arguments_parser = ft_lexer(ac, av);
 
     if (g_ping->arguments_parser != ac)
     {
-        // fprintf(stdout, "%lu ||| %lu\n", sizeof(t_options_ping), sizeof(unsigned int));
-        // inet_ntop(AF_INET, const void *restrict cp, char *restrict buf, socklen_t len)
-        // fprintf (stderr, "error on lexer ac = %i\n", ac);
-        // fprintf (stderr, "error on lexer ac = %i\n", ft_lexer(ac, av));
-        test_option();
+        fprintf (stderr, "we didnt parse all the argument : arguments_parser = %i | ac = %i \n", g_ping->arguments_parser, ac);
         return (EXIT_FAILURE);
     }
     else if (g_ping->arguments_parser == ac) {
-        fprintf (stderr, "lexer is ok; ac = %i\n", g_ping->arguments_parser);
-        test_option();
+        fprintf (stderr, "lexer is ok: ac = %i\n", g_ping->arguments_parser);
     }
 
-    // unsigned char buf[sizeof(struct in6_addr)];
-    // fprintf(stderr, "av[2]: %s\n", av[2]);
-    // int s = inet_pton(hints.ai_family, av[2], buf);
+    test_option();
 
 
     getaddrinfo_return = get_address_information();
@@ -190,10 +168,18 @@ int main(int ac, char **av){
         exit(EXIT_FAILURE);
     }
 
+
     converter_address_binary();
 
-    if (print_result() == -1)
-        return (EXIT_FAILURE);
+
+    raw_socket_definition();
+
+
+    create_socket_file_descriptor(&g_ping->socket);
+
+
+    sending_packets(g_ping->socket.file_descriptor);
+
 
     freeaddrinfo(g_ping->result);           /* No longer needed */
     return (EXIT_SUCCESS);

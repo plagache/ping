@@ -124,7 +124,9 @@ int test_option(){
         fprintf(stdout, "--- we selected -v option. ---\n\n");
     if (g_ping->options.help & ON)
         fprintf(stdout, "--- we selected -h option. ---\n\n");
-    fprintf(stdout, "--- integer = %i. ---\n\n", g_ping->arguments_parser);
+
+    fprintf(stdout, "--- Number of argument parsed = %i. ---\n\n", g_ping->arguments_parser);
+
     return 0;
 }
 
