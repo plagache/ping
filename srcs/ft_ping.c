@@ -45,7 +45,7 @@ void sending_packets(int file_descriptor){
     address_data.sin_port = 0;
     address_data.sin_family = dest_address.sa_family;
     address_data.sin_addr = g_ping->internet_address.sin_addr;
-    address_data = g_ping->internet_address;
+    // address_data = g_ping->internet_address;
 
 
     ft_bzero(packet, BUF_SIZE);

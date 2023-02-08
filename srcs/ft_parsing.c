@@ -4,6 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 
+
 #include "ft_ping.h"
 
 
@@ -20,6 +21,8 @@ int parse_host(char *host){
     }
     return (EXIT_SUCCESS);
 }
+
+
 // 2 possible format for an host
 // Ip adresse : format 8.8.8.8
 // host name : format text.com
@@ -43,6 +46,7 @@ int is_an_host(char *argument){
     return (EXIT_FAILURE);
 }
 
+
 int activate_options(char c){
 
     if (c == 'v')
@@ -52,6 +56,7 @@ int activate_options(char c){
     return 0;
 
 }
+
 
 int parse_option(char *opt){
     size_t iterator;
@@ -117,6 +122,7 @@ int ft_lexer(int ac, char **av){
     // fprintf(stdout, "--- we iterate on each arguments without failing . ---\n-- maybe a good sign --\n\n");
     return (iterator);
 }
+
 
 int test_option(){
 
