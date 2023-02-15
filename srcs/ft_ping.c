@@ -22,7 +22,17 @@ t_ft_ping *g_ping;
 
 void setting_socket_option(){
 
+    // // declaration
+    // int                     setsockopt_return;
+    // struct timeval          timeout;
+    // int                     timeout_len;
+    // int                     timeout_value;
+    // SOL_SOCKET              socket_level;
+    // SO_RCVTIMEO             socket_option_name;
+    // struct sockaddr         socket_option_value;
+    // socklen_t               socket_option_len;
     // use setsockopt
+    // setsockopt(g_ping->socket.file_descriptor, SOL_SOCKET, SO_RCVTIMEO, &g_ping->socket.timeout, sizeof(g_ping->socket.timeout));
 
 }
 
@@ -52,7 +62,15 @@ void sending_packets(int file_descriptor){
 
     // ICMP ECHO_REQUEST packets
 
-    byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, (struct sockaddr *) &address_data, dest_address_len);
+
+    // use the function sendto to send the packet
+    // and use the file_descriptor to send the packet
+
+    // byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, (struct sockaddr *) &address_data, dest_address_len);
+
+
+    byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, &dest_address, dest_address_len);
+    // byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, (struct sockaddr *) &address_data, dest_address_len);
     // byte_send = sendto(file_descriptor, packet, sizeof(packet), MSG_CONFIRM, (struct sockaddr *) &address_data, dest_address_len);
     // byte_send = sendto(file_descriptor, packet, sizeof(packet), MSG_CONFIRM, &dest_address, dest_address_len);
 
