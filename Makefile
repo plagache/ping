@@ -12,7 +12,7 @@ LIBDIR = libft
 LIBA = $(LIBDIR)/libft.a
 
 CFLAGS = -Wall -Wextra -Werror
-CFLAGS += -g 
+CFLAGS += -g
 # CFLAGS += -fsanitize=address -fno-omit-frame-pointer
 
 CC = clang
@@ -34,6 +34,7 @@ static: fclean
 $(NAME): $(OBJECT)
 	make -s -C $(LIBDIR)
 	$(CC) $(CFLAGS) -I includes -I libft/includes -o $(NAME) $(OBJECT) $(LIBA)
+	sudo setcap cap_net_raw=pe ft_ping
 	printf "$(LNECLR)$(GREEN)make ping done$(WHITE)\n"
 
 out/%.o: srcs/%.c includes/ft_ping.h
@@ -54,4 +55,4 @@ fclean:
 re: fclean all
 
 .PHONY: fclean clean re FORCE
-.SILENT: fclean clean re FORCE $(NAME) $(OBJECT)
+.SILENT: fclean clean re FORCE $(NAME) $(OBJECT) test
