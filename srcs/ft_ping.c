@@ -19,6 +19,10 @@
 
 t_ft_ping *g_ping;
 
+void icmp_create(){
+    // probably going to create the packet with some information ?
+
+}
 
 void setting_socket_option(){
 
@@ -42,24 +46,13 @@ void sending_packets(int file_descriptor){
     // declaration
     ssize_t                 byte_send;
     char                    packet[BUF_SIZE];
-    int                     dest_address_len;
-    struct sockaddr         dest_address;
     struct sockaddr_in      address_data;
 
 
-    // definition dest_address
-    dest_address_len = sizeof(dest_address);
-    memset(&dest_address, 0, dest_address_len);
-    // dest_address.sa_family = g_ping->socket.domain;
 
-    // address_data.sin_family = dest_address.sa_family;
     address_data = g_ping->internet_address;
     address_data.sin_family = g_ping->socket.domain;
-    // address_data.sin_port = 0;
-    // address_data.sin_addr = g_ping->internet_address.sin_addr;
-    // g_ping->internet_address.sin_family =
-    // address_data = g_ping->internet_address;
-
+    address_data.sin_port = 0;
 
     ft_bzero(packet, BUF_SIZE);
 
@@ -69,16 +62,15 @@ void sending_packets(int file_descriptor){
     // use the function sendto to send the packet
     // and use the file_descriptor to send the packet
 
-    // byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, (struct sockaddr *) &address_data, dest_address_len);
-
-    // if (g_ping->socket.domain == AF_INET)
-    //     fprintf (stdout, "socket domain = %i\n", g_ping->socket.domain);
-    // fprintf (stdout, "sa_family = %i\n", g_ping->socket.domain);
-    // fprintf (stdout, "addrr = %i\n", g_ping->internet_address.sin_addr);
-    // byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, (struct sockaddr *) &dest_address, dest_address_len);
+    fprintf (stdout, "family  = %i\n", address_data.sin_family);
+    fprintf (stdout, "INET family  = %i\n", AF_INET);
+    fprintf (stdout, "address = %p\n", &address_data.sin_addr);
+    fprintf (stdout, "port = %i\n", address_data.sin_port);
+    fprintf (stdout, "sin_zero = %s\n", address_data.sin_zero);
     byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, (struct sockaddr *) &address_data, sizeof(address_data));
-    // byte_send = sendto(file_descriptor, packet, sizeof(packet), MSG_CONFIRM, (struct sockaddr *) &address_data, dest_address_len);
-    // byte_send = sendto(file_descriptor, packet, sizeof(packet), MSG_CONFIRM, &dest_address, dest_address_len);
+    g_ping->internet_address.sin_family = g_ping->socket.domain;
+    g_ping->internet_address.sin_port = 0;
+    byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, (struct sockaddr *) &g_ping->internet_address, sizeof(address_data));
 
     if (byte_send <= 0)
         fprintf (stderr, "Error : %s | on function sending packets.\n", strerror(errno));
