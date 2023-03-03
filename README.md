@@ -84,3 +84,5 @@ we should read the man page of raw.
 
 getaddrinfo: Servname not supported for ai_socktype
 getaddrinfo take first the internet host and second the service
+
+chequsum ?  

@@ -35,15 +35,20 @@ $(NAME): $(OBJECT)
 	make -s -C $(LIBDIR)
 	$(CC) $(CFLAGS) -I includes -I libft/includes -o $(NAME) $(OBJECT) $(LIBA)
 	sudo setcap cap_net_raw=pe ft_ping
+	sed -e '1s/^/[\n/' -e '$$s/,$$/\n]/' out/*.o.json > compile_commands.json
 	printf "$(LNECLR)$(GREEN)make ping done$(WHITE)\n"
+
+test: all
+	# ./test/test.py
+	./test/test.sh
 
 out/%.o: srcs/%.c includes/ft_ping.h
 	mkdir -p out
 	printf "$(LNECLR)$(NAME): $<"
-	$(CC) $(CFLAGS) -I includes -I libft/includes -o $@ -c $<
+	$(CC) -MJ $@.json $(CFLAGS) -I includes -I libft/includes -o $@ -c $<
 
 clean:
-	$(RM) -rf out
+	$(RM) -rf out compile_commands.json
 	make -s -C $(LIBDIR) clean
 	printf "$(PURPLE)clean ping done$(WHITE)\n"
 

@@ -50,11 +50,14 @@ void sending_packets(int file_descriptor){
     // definition dest_address
     dest_address_len = sizeof(dest_address);
     memset(&dest_address, 0, dest_address_len);
-    dest_address.sa_family = g_ping->socket.domain;
+    // dest_address.sa_family = g_ping->socket.domain;
 
-    address_data.sin_port = 0;
-    address_data.sin_family = dest_address.sa_family;
-    address_data.sin_addr = g_ping->internet_address.sin_addr;
+    // address_data.sin_family = dest_address.sa_family;
+    address_data = g_ping->internet_address;
+    address_data.sin_family = g_ping->socket.domain;
+    // address_data.sin_port = 0;
+    // address_data.sin_addr = g_ping->internet_address.sin_addr;
+    // g_ping->internet_address.sin_family =
     // address_data = g_ping->internet_address;
 
 
@@ -68,9 +71,12 @@ void sending_packets(int file_descriptor){
 
     // byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, (struct sockaddr *) &address_data, dest_address_len);
 
-
-    byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, &dest_address, dest_address_len);
-    // byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, (struct sockaddr *) &address_data, dest_address_len);
+    // if (g_ping->socket.domain == AF_INET)
+    //     fprintf (stdout, "socket domain = %i\n", g_ping->socket.domain);
+    // fprintf (stdout, "sa_family = %i\n", g_ping->socket.domain);
+    // fprintf (stdout, "addrr = %i\n", g_ping->internet_address.sin_addr);
+    // byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, (struct sockaddr *) &dest_address, dest_address_len);
+    byte_send = sendto(file_descriptor, packet, sizeof(packet), 0, (struct sockaddr *) &address_data, sizeof(address_data));
     // byte_send = sendto(file_descriptor, packet, sizeof(packet), MSG_CONFIRM, (struct sockaddr *) &address_data, dest_address_len);
     // byte_send = sendto(file_descriptor, packet, sizeof(packet), MSG_CONFIRM, &dest_address, dest_address_len);
 
@@ -104,7 +110,7 @@ int converter_address_binary(){
         fprintf (stderr, "Error : %s | on function pton.\n", strerror(errno));
     }
 
-    fprintf (stderr, "this is internet_address in byte order : [%p]\n", &g_ping->internet_address.sin_addr);
+    fprintf (stderr, "ft_ping.c ln:107 Internet_address in byte : [%p]\n", &g_ping->internet_address.sin_addr);
 
 
     if ( g_ping->internet_address.sin_family == AF_INET)
@@ -116,7 +122,7 @@ int converter_address_binary(){
         fprintf (stderr, "Error : %s | on function ntop.\n", strerror(errno));
     }
 
-    fprintf (stderr, "this is internet_address in string : [%s]\n", internet_address_string);
+    fprintf (stderr, "ft_ping.c ln:119 Internet_address in string : [%s]\n", internet_address_string);
 
     return 0;
 }
