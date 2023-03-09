@@ -66,17 +66,22 @@ Domain name system
 	
 	mask reseau : describe which part is set for the network and which is for the host number
 
--- Possible option/s : 
+-- Possible option/s :
 	-v
 	-h
-	-vh	
+	-vh
 
 
 #### Fonctionnement
 
+we send a ICMP of type 8
+echo -> cho -> ho -> o -> o -> o
+and we should received a type 0 and echo reply
+
 ### Output
 
 each time a we received a response we print it;
+
 
 ##### ERROR
 
@@ -85,4 +90,4 @@ we should read the man page of raw.
 getaddrinfo: Servname not supported for ai_socktype
 getaddrinfo take first the internet host and second the service
 
-chequsum ?  
+chequsum ?
