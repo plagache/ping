@@ -19,6 +19,10 @@
 
 t_ft_ping *g_ping;
 
+void verify_cheksum(){
+
+}
+
 void icmp_create(){
     // probably going to create the packet with some information ?
 

@@ -72,6 +72,9 @@ Domain name system
 	-vh
 
 
+
+TTL time to live : number of node a packet can traverse before being depeciated
+
 #### Fonctionnement
 
 we send a ICMP of type 8
