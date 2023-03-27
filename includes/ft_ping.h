@@ -6,6 +6,7 @@
 # include <stdint.h>
 # include <stddef.h>
 
+#define PACKET_SIZE 4096
 
 // # define TRUE           0
 // # define FALSE          1
@@ -49,9 +50,13 @@ typedef struct          s_ft_ping
 
     t_socket            socket;
 
+    char                packet[PACKET_SIZE];
+
     struct addrinfo     *result;
 
     struct sockaddr_in      internet_address;
+    struct in_addr      source_address;
+    struct in_addr      destination_address;
 
 }                       t_ft_ping;
 
