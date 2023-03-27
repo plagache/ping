@@ -24,40 +24,39 @@
 
 t_ft_ping *g_ping;
 
-void verify_cheksum(){
 
+unsigned short calculate_checksum(unsigned short *buffer, int size) {
+    unsigned long sum = 0;
+    while (size > 1) {
+        sum += *buffer++;
+        size -= 2;
+    }
+    if (size == 1) {
+        sum += *(unsigned char*) buffer;
+    }
+    sum = (sum >> 16) + (sum & 0xffff);
+    sum += (sum >> 16);
+    return (unsigned short) ~sum;
 }
 
-void packet_creation(char *packet){
 
-    int time_to_live = 64; // number of hops the packet can take before it is discarded.
-    ft_memset(packet, 0, sizeof(packet)); // making sure the packet is set to 0
-    struct iphdr *ip_header = (struct iphdr *) packet;
-    struct icmphdr *icmp_header = (struct icmphdr *) (packet + sizeof(struct iphdr));
+void icmp_packet_creation(){
+
+    ft_memset(g_ping->packet, 0, sizeof(g_ping->packet)); // making sure the packet is set to 0
+    struct icmphdr *icmp_header = (struct icmphdr *) (g_ping->packet + sizeof(struct iphdr));
     
-    // fill IP header
-    ip_header->version = 4; // IP version here IPv4
-    ip_header->ihl = 5;  // Internet Header Length (number of 32-bit words in header)
-    ip_header->tos = 0; // type of service
-    ip_header->tot_len = sizeof(struct iphdr) + sizeof(struct icmphdr); // Total length of packet (IP header + data)
-    ip_header->id = htons(12345);
-    ip_header->frag_off = 0;
-    ip_header->ttl = time_to_live;
-    ip_header->protocol = IPPROTO_ICMP;
-    ip_header->saddr = g_ping->source_address.s_addr;
-    ip_header->daddr = g_ping->destination_address.s_addr;
-    ip_header->check = 0;
-    ip_header->check = htons(~(ip_header->check));
     
     // fill ICMP header
     icmp_header->type = ICMP_ECHO;
+    fprintf (stderr, "ICMP_ECHO = %i.\n", ICMP_ECHO);
+    fprintf (stderr, "pid information = %i.\n", getpid());
     icmp_header->code = 0;
     icmp_header->un.echo.id = getpid();
-    icmp_header->un.echo.sequence = 0;
+    icmp_header->un.echo.sequence = 1;
     icmp_header->checksum = 0;
-    icmp_header->checksum = htons(~(icmp_header->checksum));
+    icmp_header->checksum = calculate_checksum((unsigned short*)&icmp_header, sizeof(struct icmphdr));
 
-    ft_memcpy(packet, &icmp_header, sizeof(struct icmphdr));
+    ft_memcpy(&g_ping->packet, &icmp_header, sizeof(struct icmphdr));
 }
 
 void setting_socket_option(){
@@ -72,8 +71,14 @@ void setting_socket_option(){
     // struct sockaddr         socket_option_value;
     // socklen_t               socket_option_len;
     // use setsockopt
-    // setsockopt(g_ping->socket.file_descriptor, SOL_SOCKET, SO_RCVTIMEO, &g_ping->socket.timeout, sizeof(g_ping->socket.timeout));
-
+    int time_to_live;
+    time_to_live = 63;
+    int ttl = time_to_live;
+    // int enable = 1;
+    setsockopt(g_ping->socket.file_descriptor, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
+    // setsockopt(g_ping->socket.file_descriptor, IPPROTO_IP, IP_HDRINCL, &enable, sizeof(enable));
+    // int protocol = IPPROTO_IP;
+    // setsockopt(g_ping->socket.file_descriptor, IPPROTO_IP, IP_PROTOCOL, &protocol, sizeof(protocol));
 }
 
 
@@ -129,8 +134,6 @@ int converter_address_binary(){
 
     fprintf (stderr, "HOST : [%s]\n", g_ping->host);
     s = inet_pton(AF_INET, g_ping->host, &g_ping->internet_address); // transform an IP address string to binary
-    s = inet_pton(AF_INET, g_ping->host, &g_ping->destination_address); // transform an IP address string to binary
-    s = inet_pton(AF_INET, "192.168.0.1", &g_ping->source_address); // transform an IP address string to binary
     if (s == 0)
         fprintf (stderr, "not a valid address for the family : %i .\n", s);
 
@@ -140,8 +143,6 @@ int converter_address_binary(){
     }
 
     fprintf (stderr, "ft_ping.c ln:107 Internet_address in byte : [%p]\n", &g_ping->internet_address.sin_addr);
-    fprintf (stderr, "ft_ping.c ln:107 Internet_address in byte : [%p]\n", &g_ping->source_address.s_addr);
-    fprintf (stderr, "ft_ping.c ln:107 Internet_address in byte : [%p]\n", &g_ping->destination_address.s_addr);
 
 
     if ( g_ping->internet_address.sin_family == AF_INET)
@@ -245,9 +246,11 @@ int main(int ac, char **av){
 
     raw_socket_definition();
 
-    packet_creation(g_ping->packet);
+    icmp_packet_creation();
 
     create_socket_file_descriptor(&g_ping->socket);
+
+    setting_socket_option();
 
 
     sending_packets(g_ping->socket.file_descriptor);

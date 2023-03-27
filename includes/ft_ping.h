@@ -55,8 +55,6 @@ typedef struct          s_ft_ping
     struct addrinfo     *result;
 
     struct sockaddr_in      internet_address;
-    struct in_addr      source_address;
-    struct in_addr      destination_address;
 
 }                       t_ft_ping;
 
