@@ -299,19 +299,34 @@ int main(int ac, char **av){
 
     converter_address_binary();
 
-
     raw_socket_definition();
-
 
     create_socket_file_descriptor(&g_ping->socket);
 
     setting_socket_option();
 
+    // iterate here
+    // first printf
+    // PING Host IP in string 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+
+    // wait with usleep 1 seconde between iteration
+    //
     icmp_packet_creation();
 
     sending_packets(g_ping->socket.file_descriptor);
 
     received_message();
+    // each received_message() will also print information of this type;
+    // 64 bytes from 8.8.8.8: icmp_seq=4 ttl=116 time=10.8 ms
+
+
+    // when the iteration is finished
+    // we display statistics free everythintg
+    // and exit
+    // --- 8.8.8.8 ping statistics ---
+    // 4 packets transmitted, 4 received, 0% packet loss, time 3005ms
+    // rtt min/avg/max/mdev = 9.019/11.103/12.798/1.395 ms
+
 
     freeaddrinfo(g_ping->result);           /* No longer needed */
     return (EXIT_SUCCESS);
