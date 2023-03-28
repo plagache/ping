@@ -6,7 +6,11 @@
 # include <stdint.h>
 # include <stddef.h>
 
-#define PACKET_SIZE 4096
+#include <netinet/ip.h> // header for the ip struct
+#include <netinet/ip_icmp.h> // header for the icmp struct
+
+// #define PACKET_SIZE 4096
+#define PACKET_SIZE 64
 
 // # define TRUE           0
 // # define FALSE          1
@@ -35,6 +39,7 @@ typedef struct          s_socket
 {
     int domain;
     int type;
+    int port;
     int protocol;
     int file_descriptor;
 }                       t_socket;
@@ -50,7 +55,8 @@ typedef struct          s_ft_ping
 
     t_socket            socket;
 
-    char                packet[PACKET_SIZE];
+
+    char                packet[sizeof(struct icmp)];
 
     struct addrinfo     *result;
 
