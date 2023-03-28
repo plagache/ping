@@ -104,7 +104,7 @@ void icmp_packet_creation(){
     icmp_header.icmp_type = ICMP_ECHO;
     icmp_header.icmp_code = 0;
     icmp_header.icmp_id = htons(getpid()); // htons set the byte in network order
-    icmp_header.icmp_seq = htons(1);
+    icmp_header.icmp_seq = htons(g_ping->sequence_number);
     icmp_header.icmp_cksum = 0;
     icmp_header.icmp_cksum = calculate_checksum((unsigned short*)&icmp_header, sizeof(struct icmphdr));
 
@@ -160,13 +160,22 @@ void sending_packets(int file_descriptor){
     fprintf (stdout, "port = %i\n", g_ping->internet_address.sin_port);
 
 
-    byte_send = sendto(file_descriptor, &g_ping->packet, sizeof(g_ping->packet), 0, (struct sockaddr *) &g_ping->internet_address, sizeof(address_data));
+    int number_of_ping_to_send = 4;
+
+    g_ping->sequence_number = 1;
 
 
-    if (byte_send <= 0)
-        fprintf (stderr, "Error : %s | on function sending packets.\n", strerror(errno));
+    while (number_of_ping_to_send > g_ping->sequence_number) {
 
-    fprintf (stdout, "byte_send with sendto = %zu\n", byte_send);
+        byte_send = sendto(file_descriptor, &g_ping->packet, sizeof(g_ping->packet), 0, (struct sockaddr *) &g_ping->internet_address, sizeof(address_data));
+
+        if (byte_send <= 0)
+            fprintf (stderr, "Error : %s | on function sending packets.\n", strerror(errno));
+
+        fprintf (stdout, "byte_send with sendto = %zu\n", byte_send);
+
+        g_ping->sequence_number += 1;
+    }
 }
 
 

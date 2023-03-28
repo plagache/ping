@@ -55,8 +55,9 @@ typedef struct          s_ft_ping
 
     t_socket            socket;
 
-
     char                packet[sizeof(struct icmp)];
+
+    int                 sequence_number;
 
     struct addrinfo     *result;
 
