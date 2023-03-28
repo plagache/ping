@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <netdb.h>
 
+
 #include <unistd.h> // getpid header
 
 
@@ -53,6 +54,16 @@ void icmp_packet_creation(){
     // copy the described icmp header in the char packet
     ft_memcpy(g_ping->packet, &icmp_header, sizeof(icmp_header));
 
+
+    // data to set in the ICMP packet
+    // char *data = "Hello, world!";
+    // the timestamp should be the data
+    // maybe a option to set on the socket
+
+    // copy the data into the data area of the ICMP packet
+    // pointer to the start of the data area in the ICMP packet
+    // ft_memcpy(g_ping->packet + sizeof(struct icmphdr), data, ft_strlen(data));
+
     // ft_memcpy(g_ping->packet, "Hello, world!", 13);
     // ft_memcpy(&g_ping->packet, &icmp_header, sizeof(struct icmphdr));
 }
@@ -72,11 +83,11 @@ void setting_socket_option(){
     int time_to_live;
     time_to_live = 63;
     int ttl = time_to_live;
+    setsockopt(g_ping->socket.file_descriptor, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
+
     int enable = 0;
     setsockopt(g_ping->socket.file_descriptor, IPPROTO_IP, IP_HDRINCL, &enable, sizeof(enable));
-    setsockopt(g_ping->socket.file_descriptor, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
-    // int protocol = IPPROTO_IP;
-    // setsockopt(g_ping->socket.file_descriptor, IPPROTO_IP, IP_PROTOCOL, &protocol, sizeof(protocol));
+
 }
 
 
@@ -86,28 +97,8 @@ void sending_packets(int file_descriptor){
     ssize_t                 byte_send;
     struct sockaddr_in      address_data;
 
-
-    // ICMP ECHO_REQUEST packets
-
-
-    // use the function sendto to send the packet
-    // and use the file_descriptor to send the packet
-    // address_data = g_ping->internet_address;
-    // fprintf (stdout, "address = %p\n", &address_data.sin_addr);
-    // address_data.sin_family = g_ping->socket.domain;
-    // fprintf (stdout, "family  = %i\n", address_data.sin_family);
-    // address_data.sin_port = 0;
-    // fprintf (stdout, "port = %i\n", address_data.sin_port);
-    // fprintf (stdout, "sin_zero = %s\n", address_data.sin_zero);
-    // fprintf (stdout, "INET family  = %i\n", AF_INET);
-    // byte_send = sendto(file_descriptor, g_ping->packet, sizeof(g_ping->packet), 0, (struct sockaddr *) &address_data, sizeof(address_data));
-    //
-    // if (byte_send <= 0)
-    //     fprintf (stderr, "Error : %s | on function sending packets.\n", strerror(errno));
-
     g_ping->internet_address.sin_family = g_ping->socket.domain;
     fprintf (stdout, "family  = %i\n", g_ping->internet_address.sin_family);
-    // fprintf (stdout, "address = %p\n", &g_ping->internet_address);
     g_ping->internet_address.sin_port = g_ping->socket.port;
     fprintf (stdout, "port = %i\n", g_ping->internet_address.sin_port);
 
@@ -118,7 +109,7 @@ void sending_packets(int file_descriptor){
     if (byte_send <= 0)
         fprintf (stderr, "Error : %s | on function sending packets.\n", strerror(errno));
 
-    fprintf (stdout, "byte_send = %zu\n", byte_send);
+    fprintf (stdout, "byte_send with sendto = %zu\n", byte_send);
 }
 
 
