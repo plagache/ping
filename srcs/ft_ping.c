@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <netdb.h>
 
+#define BUFFER_SIZE 1024
 
 #include <unistd.h> // getpid header
 
@@ -22,6 +23,62 @@
 
 t_ft_ping *g_ping;
 
+void print_information_from_received_message(char buffer[BUFFER_SIZE]){
+
+    struct iphdr* ip_header = (struct iphdr*) buffer;
+    struct icmphdr* icmp_header = (struct icmphdr*) (buffer + sizeof(struct iphdr));
+
+    char source_address_string[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &ip_header->saddr, source_address_string, INET_ADDRSTRLEN);
+    char destination_address_string[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &ip_header->daddr, destination_address_string, INET_ADDRSTRLEN);
+
+    printf("IP header: ttl=%d version=%d\n protocol=%d, check=%d\n frag_off=%d, id=%d, ihl=%d\n source=%s, destination=%s\n",
+           ip_header->ttl,
+           ip_header->version,
+           ip_header->protocol,
+           ip_header->check,
+           ip_header->frag_off,
+           ip_header->id,
+           ip_header->ihl,
+           source_address_string,
+           destination_address_string);
+    printf("ICMP header: type=%d, code=%d, checksum=%d\n", icmp_header->type, icmp_header->code, icmp_header->checksum);
+}
+
+void received_message(){
+
+    ssize_t                 bytes_received;
+
+    char buffer[BUFFER_SIZE];
+    struct sockaddr_in sender_address;
+    struct msghdr msg;
+    struct iovec iov;
+
+    iov.iov_base = buffer;
+    iov.iov_len = sizeof(buffer);
+
+    msg.msg_name = &sender_address;
+    msg.msg_namelen = sizeof(sender_address);
+    msg.msg_iov = &iov;
+    msg.msg_iovlen = 1;
+    msg.msg_control = NULL;
+    msg.msg_controllen = 0;
+    msg.msg_flags = 0;
+
+    bytes_received = recvmsg(g_ping->socket.file_descriptor, &msg, 0);
+
+    if (bytes_received < 0) {
+        perror("recvmsg");
+        exit(1);
+    }
+    if (bytes_received != 0){
+        fprintf (stdout, "byte_received with recvmsg = %zu\n", bytes_received);
+        fprintf(stdout, "Received ICMP packet from %s\n", inet_ntoa(sender_address.sin_addr));
+        print_information_from_received_message(buffer);
+    }
+
+}
 
 unsigned short calculate_checksum(unsigned short *buffer, int size) {
     unsigned long sum = 0;
@@ -245,6 +302,7 @@ int main(int ac, char **av){
 
     sending_packets(g_ping->socket.file_descriptor);
 
+    received_message();
 
     freeaddrinfo(g_ping->result);           /* No longer needed */
     return (EXIT_SUCCESS);
