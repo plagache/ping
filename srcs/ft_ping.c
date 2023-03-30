@@ -1,4 +1,5 @@
 #include <netinet/in.h>
+#include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
 #include <stddef.h>
 #include <arpa/inet.h>
@@ -11,6 +12,8 @@
 #include <sys/socket.h>
 #include <errno.h>
 #include <netdb.h>
+
+#include <sys/time.h> // gettimeofday header
 
 #define BUFFER_SIZE 1024
 
@@ -26,24 +29,39 @@ t_ft_ping *g_ping;
 void print_information_from_received_message(char buffer[BUFFER_SIZE]){
 
     struct iphdr* ip_header = (struct iphdr*) buffer;
-    struct icmphdr* icmp_header = (struct icmphdr*) (buffer + sizeof(struct iphdr));
+    struct icmp* icmp_header = (struct icmp*) (buffer + sizeof(struct iphdr));
 
     char source_address_string[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &ip_header->saddr, source_address_string, INET_ADDRSTRLEN);
     char destination_address_string[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &ip_header->daddr, destination_address_string, INET_ADDRSTRLEN);
 
-    printf("IP header: ttl=%d version=%d\n protocol=%d, check=%d\n frag_off=%d, id=%d, ihl=%d\n source=%s, destination=%s\n",
-           ip_header->ttl,
-           ip_header->version,
-           ip_header->protocol,
-           ip_header->check,
-           ip_header->frag_off,
-           ip_header->id,
-           ip_header->ihl,
-           source_address_string,
-           destination_address_string);
-    printf("ICMP header: type=%d, code=%d, checksum=%d\n", icmp_header->type, icmp_header->code, icmp_header->checksum);
+    // fprintf(stdout, "IP header: ttl=%d version=%d\n protocol=%d, check=%d\n frag_off=%d, id=%d, ihl=%d\n source=%s, destination=%s\n",
+    //        ip_header->ttl,
+    //        ip_header->version,
+    //        ip_header->protocol,
+    //        ip_header->check,
+    //        ip_header->frag_off,
+    //        ip_header->id,
+    //        ip_header->ihl,
+    //        source_address_string,
+    //        destination_address_string);
+
+
+    // we display only the messages that correspond to the id of our program
+    if (icmp_header->icmp_id == g_ping->program_id){
+        // fprintf(stdout, "id of the icmp response:%d\n",
+        //         icmp_header->icmp_id
+        //         );
+        fprintf(stdout, "%d bytes from %s: icmp_seq=%d ttl=%d time=%d\n",
+                64,
+                source_address_string,
+                // ntohs(icmp_header->icmp_seq),
+                icmp_header->icmp_seq,
+                ip_header->ttl,
+                24359
+                );
+    }
 }
 
 void received_message(){
@@ -73,14 +91,14 @@ void received_message(){
         exit(1);
     }
     if (bytes_received != 0){
-        fprintf (stdout, "byte_received with recvmsg = %zu\n", bytes_received);
-        fprintf(stdout, "Received ICMP packet from %s\n", inet_ntoa(sender_address.sin_addr));
+        // fprintf (stdout, "byte_received with recvmsg = %zu\n", bytes_received);
+        // fprintf(stdout, "Received ICMP packet from %s\n", inet_ntoa(sender_address.sin_addr));
         print_information_from_received_message(buffer);
     }
 
 }
 
-unsigned short calculate_checksum(unsigned short *buffer, int size) {
+unsigned short calculate_icmp_checksum(unsigned short *buffer, int size) {
     unsigned long sum = 0;
     while (size > 1) {
         sum += *buffer++;
@@ -89,7 +107,7 @@ unsigned short calculate_checksum(unsigned short *buffer, int size) {
     if (size == 1) {
         sum += *(unsigned char*) buffer;
     }
-    sum = (sum >> 16) + (sum & 0xffff);
+    sum = (sum >> 16) + (sum & 0xffff); // put it in correct order
     sum += (sum >> 16);
     return (unsigned short) ~sum;
 }
@@ -103,13 +121,14 @@ void icmp_packet_creation(){
     // describe in a struct the icmp header
     icmp_header.icmp_type = ICMP_ECHO;
     icmp_header.icmp_code = 0;
-    icmp_header.icmp_id = htons(getpid()); // htons set the byte in network order
-    icmp_header.icmp_seq = htons(g_ping->sequence_number);
+    // icmp_header.icmp_id = htons(getpid()); // htons set the byte in network order
+    icmp_header.icmp_id = g_ping->program_id; // but not nescessary
+    // icmp_header.icmp_seq = htons(g_ping->sequence_number);
+    icmp_header.icmp_seq = g_ping->sequence_number;
+    // icmp_header.icmp_hun.ih_idseq = g_ping->sequence_number;
     icmp_header.icmp_cksum = 0;
-    icmp_header.icmp_cksum = calculate_checksum((unsigned short*)&icmp_header, sizeof(struct icmphdr));
+    icmp_header.icmp_cksum = calculate_icmp_checksum((unsigned short*)&icmp_header, sizeof(struct icmphdr));
 
-    // copy the described icmp header in the char packet
-    ft_memcpy(g_ping->packet, &icmp_header, sizeof(icmp_header));
 
 
     // data to set in the ICMP packet
@@ -117,12 +136,23 @@ void icmp_packet_creation(){
     // the timestamp should be the data
     // maybe a option to set on the socket
 
+    // struct timeval tv;
+    // gettimeofday(&tv, NULL);
+    // unsigned long *timestamp_ptr = (unsigned long*)icmp_header.icmp_data;
+    // *timestamp_ptr = ((unsigned long)tv.tv_sec) * 1000 + ((unsigned long)tv.tv_usec) / 1000; // store timestamp in milliseconds
+
+
     // copy the data into the data area of the ICMP packet
     // pointer to the start of the data area in the ICMP packet
-    // ft_memcpy(g_ping->packet + sizeof(struct icmphdr), data, ft_strlen(data));
+    // ft_memcpy(icmp_header.icmp_data + sizeof(struct icmphdr), data, ft_strlen(data));
 
     // ft_memcpy(g_ping->packet, "Hello, world!", 13);
     // ft_memcpy(&g_ping->packet, &icmp_header, sizeof(struct icmphdr));
+    //
+
+
+    // copy the described icmp header in the char packet
+    ft_memcpy(g_ping->packet, &icmp_header, sizeof(icmp_header));
 }
 
 void setting_socket_option(){
@@ -155,27 +185,16 @@ void sending_packets(int file_descriptor){
     struct sockaddr_in      address_data;
 
     g_ping->internet_address.sin_family = g_ping->socket.domain;
-    fprintf (stdout, "family  = %i\n", g_ping->internet_address.sin_family);
+    // fprintf (stdout, "family  = %i\n", g_ping->internet_address.sin_family);
     g_ping->internet_address.sin_port = g_ping->socket.port;
-    fprintf (stdout, "port = %i\n", g_ping->internet_address.sin_port);
+    // fprintf (stdout, "port = %i\n", g_ping->internet_address.sin_port);
 
+    byte_send = sendto(file_descriptor, &g_ping->packet, sizeof(g_ping->packet), 0, (struct sockaddr *) &g_ping->internet_address, sizeof(address_data));
 
-    int number_of_ping_to_send = 4;
+    if (byte_send <= 0)
+        fprintf (stderr, "Error : %s | on function sending packets.\n", strerror(errno));
 
-    g_ping->sequence_number = 1;
-
-
-    while (number_of_ping_to_send > g_ping->sequence_number) {
-
-        byte_send = sendto(file_descriptor, &g_ping->packet, sizeof(g_ping->packet), 0, (struct sockaddr *) &g_ping->internet_address, sizeof(address_data));
-
-        if (byte_send <= 0)
-            fprintf (stderr, "Error : %s | on function sending packets.\n", strerror(errno));
-
-        fprintf (stdout, "byte_send with sendto = %zu\n", byte_send);
-
-        g_ping->sequence_number += 1;
-    }
+    // fprintf (stdout, "byte_send with sendto = %zu\n", byte_send);
 }
 
 
@@ -189,7 +208,7 @@ int converter_address_binary(){
     char internet_address_string[INET_ADDRSTRLEN];
 
 
-    fprintf (stderr, "HOST : [%s]\n", g_ping->host);
+    // fprintf (stderr, "HOST : [%s]\n", g_ping->host);
     s = inet_pton(AF_INET, g_ping->host, &g_ping->internet_address.sin_addr); // transform an IP address string to binary
     if (s == 0)
         fprintf (stderr, "not a valid address for the family : %i .\n", s);
@@ -209,7 +228,7 @@ int converter_address_binary(){
         fprintf (stderr, "Error : %s | on function ntop.\n", strerror(errno));
     }
 
-    fprintf (stderr, "ft_ping.c ln:119 Internet_address in string : [%s]\n", internet_address_string);
+    // fprintf (stderr, "ft_ping.c ln:119 Internet_address in string : [%s]\n", internet_address_string);
 
     return 0;
 }
@@ -248,7 +267,7 @@ int create_socket_file_descriptor(t_socket *sock){
     if (sock->file_descriptor == -1)
         fprintf (stderr, "Error : %s | on function create socket.\n", strerror(errno));
 
-    fprintf (stderr, "file descriptor : [%i]\n", sock->file_descriptor);
+    // fprintf (stderr, "file descriptor : [%i]\n", sock->file_descriptor);
 
     return sock->file_descriptor;
 }
@@ -265,6 +284,15 @@ void raw_socket_definition() {
 
 }
 
+void stop_program(int signal_number){
+
+    fprintf(stdout, "We received the signal to stop %d\n", signal_number);
+    fprintf(stdout, "this is the end of the program");
+    freeaddrinfo(g_ping->result);           /* No longer needed */
+    exit(EXIT_SUCCESS);
+    fprintf(stdout, "this is after the exit of the program");
+
+}
 
 int main(int ac, char **av){
 
@@ -296,6 +324,7 @@ int main(int ac, char **av){
     //     exit(EXIT_FAILURE);
     // }
 
+    g_ping->program_id = getpid();
 
     converter_address_binary();
 
@@ -308,26 +337,39 @@ int main(int ac, char **av){
     // iterate here
     // first printf
     // PING Host IP in string 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+    fprintf(stdout, "PING %s (%s) 56(84) bytes of data.\n", g_ping->host, g_ping->host);
 
     // wait with usleep 1 seconde between iteration
     //
-    icmp_packet_creation();
+    g_ping->sequence_number = 1;
 
-    sending_packets(g_ping->socket.file_descriptor);
+    g_ping->count = 4;
+    g_ping->count = 0;
 
-    received_message();
-    // each received_message() will also print information of this type;
-    // 64 bytes from 8.8.8.8: icmp_seq=4 ttl=116 time=10.8 ms
+    while(g_ping->count >= g_ping->sequence_number || g_ping->count == 0){
+
+        icmp_packet_creation();
+
+        sending_packets(g_ping->socket.file_descriptor);
+
+        received_message();
+        // each received_message() will also print information of this type;
+        // 64 bytes from 8.8.8.8: icmp_seq=4 ttl=116 time=10.8 ms
 
 
-    // when the iteration is finished
-    // we display statistics free everythintg
-    // and exit
-    // --- 8.8.8.8 ping statistics ---
-    // 4 packets transmitted, 4 received, 0% packet loss, time 3005ms
-    // rtt min/avg/max/mdev = 9.019/11.103/12.798/1.395 ms
+        // when the iteration is finished
+        // we display statistics free everythintg
+        // and exit
+        // --- 8.8.8.8 ping statistics ---
+        // 4 packets transmitted, 4 received, 0% packet loss, time 3005ms
+        // rtt min/avg/max/mdev = 9.019/11.103/12.798/1.395 ms
+        g_ping->sequence_number++;
+        // fprintf(stdout, "count %d, sequence number: %d", count, g_ping->sequence_number);
+        usleep(1000000);
+    }
 
 
     freeaddrinfo(g_ping->result);           /* No longer needed */
+
     return (EXIT_SUCCESS);
 }

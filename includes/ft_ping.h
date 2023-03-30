@@ -9,8 +9,8 @@
 #include <netinet/ip.h> // header for the ip struct
 #include <netinet/ip_icmp.h> // header for the icmp struct
 
-// #define PACKET_SIZE 4096
-#define PACKET_SIZE 64
+#define PACKET_SIZE 4096
+// #define PACKET_SIZE 64
 
 // # define TRUE           0
 // # define FALSE          1
@@ -42,6 +42,7 @@ typedef struct          s_socket
     int port;
     int protocol;
     int file_descriptor;
+
 }                       t_socket;
 
 
@@ -58,6 +59,10 @@ typedef struct          s_ft_ping
     char                packet[sizeof(struct icmp)];
 
     int                 sequence_number;
+
+    int                 count;
+
+    int                 program_id;
 
     struct addrinfo     *result;
 
