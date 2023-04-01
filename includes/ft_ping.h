@@ -56,7 +56,7 @@ typedef struct          s_ft_ping
 
     t_socket            socket;
 
-    char                packet[sizeof(struct icmp)];
+    char                packet[sizeof(struct icmp) + 20];
 
     int                 sequence_number;
 

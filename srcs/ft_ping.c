@@ -99,24 +99,42 @@ void received_message(){
 }
 
 unsigned short calculate_icmp_checksum(unsigned short *buffer, int size) {
-    unsigned long sum = 0;
+    unsigned long checksum = 0;
+    fprintf(stdout, "sum=%lu\n", checksum);
+    fprintf(stdout, "this is the unsigned short %u\n", *buffer);
+    fprintf(stdout, "this is the size %u\n", size);
+    fprintf(stdout, "this is the size of the struct icmphdr %lu\n", sizeof(struct icmphdr));
+    fprintf(stdout, "this is the size of the struct icmp %lu\n", sizeof(struct icmp));
     while (size > 1) {
-        sum += *buffer++;
+        checksum += *buffer++;
+        fprintf(stdout, "sum=%lu\n", checksum);
+        // fprintf(stdout, "this is the unsigned short %u\n", *buffer);
+        fprintf(stdout, "this is the size %u\n", size);
         size -= 2;
+        // fprintf(stdout, "this is the buffer %c\n", buffer[size]);
     }
     if (size == 1) {
-        sum += *(unsigned char*) buffer;
+        checksum += *(unsigned char*) buffer;
+        fprintf(stdout, "sum=%lu\n", checksum);
+        // fprintf(stdout, "this is the unsigned short %u\n", *buffer);
+        // fprintf(stdout, "this is the last buffer %c\n", buffer[size]);
+        fprintf(stdout, "this is the size %u\n", size);
     }
-    sum = (sum >> 16) + (sum & 0xffff); // put it in correct order
-    sum += (sum >> 16);
-    return (unsigned short) ~sum;
+    checksum = (checksum >> 16) + (checksum & 0xffff); // put it in correct order
+    fprintf(stdout, "final calcul for checksum %lu\n", checksum);
+    checksum += (checksum >> 16);
+    unsigned short sum_bit = (unsigned short)~checksum;
+    fprintf(stdout, "unsigned short checksum=%u\n", sum_bit);
+    fprintf(stdout, "checksum that is return %lu\n", checksum);
+    return (unsigned short) ~checksum;
 }
 
 
 void icmp_packet_creation(){
 
     struct icmp icmp_header;
-    ft_memset(&icmp_header, 0, sizeof(icmp_header)); // making sure the packet is clean (set to 0) before operating on it
+    // ft_memset(&icmp_header, 0, sizeof(icmp_header)); // making sure the packet is clean (set to 0) before operating on it
+    ft_memset(&icmp_header, 0, sizeof(icmp_header) + 28); // making sure the packet is clean (set to 0) before operating on it
 
     // describe in a struct the icmp header
     icmp_header.icmp_type = ICMP_ECHO;
@@ -127,12 +145,12 @@ void icmp_packet_creation(){
     icmp_header.icmp_seq = g_ping->sequence_number;
     // icmp_header.icmp_hun.ih_idseq = g_ping->sequence_number;
     icmp_header.icmp_cksum = 0;
-    icmp_header.icmp_cksum = calculate_icmp_checksum((unsigned short*)&icmp_header, sizeof(struct icmphdr));
+    // icmp_header.icmp_cksum = calculate_icmp_checksum((unsigned short*)&icmp_header, sizeof(struct icmphdr));
 
 
 
     // data to set in the ICMP packet
-    // char *data = "Hello, world!";
+    char *data = "Hello, world!this is a very very chiant";
     // the timestamp should be the data
     // maybe a option to set on the socket
 
@@ -144,7 +162,7 @@ void icmp_packet_creation(){
 
     // copy the data into the data area of the ICMP packet
     // pointer to the start of the data area in the ICMP packet
-    // ft_memcpy(icmp_header.icmp_data + sizeof(struct icmphdr), data, ft_strlen(data));
+    ft_memcpy(icmp_header.icmp_data + sizeof(struct icmphdr), data, ft_strlen(data));
 
     // ft_memcpy(g_ping->packet, "Hello, world!", 13);
     // ft_memcpy(&g_ping->packet, &icmp_header, sizeof(struct icmphdr));
@@ -152,6 +170,8 @@ void icmp_packet_creation(){
 
 
     // copy the described icmp header in the char packet
+
+    icmp_header.icmp_cksum = calculate_icmp_checksum((unsigned short*)&icmp_header, sizeof(struct icmp));
     ft_memcpy(g_ping->packet, &icmp_header, sizeof(icmp_header));
 }
 
@@ -344,7 +364,7 @@ int main(int ac, char **av){
     g_ping->sequence_number = 1;
 
     g_ping->count = 4;
-    g_ping->count = 0;
+    // g_ping->count = 0;
 
     while(g_ping->count >= g_ping->sequence_number || g_ping->count == 0){
 

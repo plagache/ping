@@ -13,7 +13,7 @@ LIBA = $(LIBDIR)/libft.a
 
 CFLAGS = -Wall -Wextra -Werror
 CFLAGS += -g
-# CFLAGS += -fsanitize=address -fno-omit-frame-pointer
+CFLAGS += -fsanitize=address -fno-omit-frame-pointer
 
 CC = clang
 #CC = gcc
