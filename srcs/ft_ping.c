@@ -70,55 +70,60 @@ void received_message(){
 
     char buffer[BUFFER_SIZE];
     struct sockaddr_in sender_address;
-    struct msghdr msg;
+    struct msghdr message_header;
     struct iovec iov;
 
     iov.iov_base = buffer;
     iov.iov_len = sizeof(buffer);
 
-    msg.msg_name = &sender_address;
-    msg.msg_namelen = sizeof(sender_address);
-    msg.msg_iov = &iov;
-    msg.msg_iovlen = 1;
-    msg.msg_control = NULL;
-    msg.msg_controllen = 0;
-    msg.msg_flags = 0;
+    message_header.msg_name = &sender_address;
+    message_header.msg_namelen = sizeof(sender_address);
+    message_header.msg_iov = &iov;
+    message_header.msg_iovlen = 1;
+    message_header.msg_control = NULL;
+    message_header.msg_controllen = 0;
+    message_header.msg_flags = 0;
 
-    bytes_received = recvmsg(g_ping->socket.file_descriptor, &msg, 0);
+    bytes_received = recvmsg(g_ping->socket.file_descriptor, &message_header, 0);
 
     if (bytes_received < 0) {
         perror("recvmsg");
         exit(1);
     }
     if (bytes_received != 0){
-        // fprintf (stdout, "byte_received with recvmsg = %zu\n", bytes_received);
-        // fprintf(stdout, "Received ICMP packet from %s\n", inet_ntoa(sender_address.sin_addr));
+        fprintf (stdout, "byte_received with recvmsg = %zu\n", bytes_received);
+        fprintf(stdout, "Received ICMP packet from %s\n", inet_ntoa(sender_address.sin_addr));
         print_information_from_received_message(buffer);
     }
 
 }
 
-unsigned short calculate_icmp_checksum(unsigned short *buffer, int size) {
+// the checksum function 
+// we iterate on each bytes(8 octets / unsigned short)
+
+            /* Compute Internet Checksum for "count" bytes
+            *         beginning at location "addr".
+            */
+unsigned short calculate_icmp_checksum(unsigned short *addr, int size) {
     unsigned long checksum = 0;
-    fprintf(stdout, "sum=%lu\n", checksum);
-    fprintf(stdout, "this is the unsigned short %u\n", *buffer);
-    fprintf(stdout, "this is the size %u\n", size);
-    fprintf(stdout, "this is the size of the struct icmphdr %lu\n", sizeof(struct icmphdr));
-    fprintf(stdout, "this is the size of the struct icmp %lu\n", sizeof(struct icmp));
+    unsigned long sum = 0;
+
+    fprintf(stdout, "sum=%lu\n", sum);
+    fprintf(stdout, "Starting size=%u\n", size);
+
     while (size > 1) {
-        checksum += *buffer++;
-        fprintf(stdout, "sum=%lu\n", checksum);
-        // fprintf(stdout, "this is the unsigned short %u\n", *buffer);
-        fprintf(stdout, "this is the size %u\n", size);
-        size -= 2;
-        // fprintf(stdout, "this is the buffer %c\n", buffer[size]);
+        sum += *addr++;
+        fprintf(stdout, "size > 1 checksum=%lu\n", sum);
+        fprintf(stdout, "New size=%u\n", size);
+        size -= sizeof(unsigned short);
     }
-    if (size == 1) {
-        checksum += *(unsigned char*) buffer;
-        fprintf(stdout, "sum=%lu\n", checksum);
+
+    if (size > 0) {
+        sum += *(unsigned char*) addr;
+        fprintf(stdout, "size == 1 checksum=%lu\n", checksum);
         // fprintf(stdout, "this is the unsigned short %u\n", *buffer);
         // fprintf(stdout, "this is the last buffer %c\n", buffer[size]);
-        fprintf(stdout, "this is the size %u\n", size);
+        fprintf(stdout, "New size=%u\n", size);
     }
     checksum = (checksum >> 16) + (checksum & 0xffff); // put it in correct order
     fprintf(stdout, "final calcul for checksum %lu\n", checksum);
@@ -126,31 +131,41 @@ unsigned short calculate_icmp_checksum(unsigned short *buffer, int size) {
     unsigned short sum_bit = (unsigned short)~checksum;
     fprintf(stdout, "unsigned short checksum=%u\n", sum_bit);
     fprintf(stdout, "checksum that is return %lu\n", checksum);
-    return (unsigned short) ~checksum;
+
+
+    checksum = ~sum;    // the 1's complement of this sum is placed in the
+                        // checksum field.
+    fprintf(stdout, "checksum that is return %lu\n", checksum);
+    return (unsigned short) checksum;
 }
 
 
 void icmp_packet_creation(){
 
-    struct icmp icmp_header;
+    struct icmp icmp_packet;
+
+    char my_icmp_data[PACKET_SIZE];
+
+    ft_memset(my_icmp_data, 0, PACKET_SIZE); // making sure the packet is clean (set to 0) before operating on it
+    //
     // ft_memset(&icmp_header, 0, sizeof(icmp_header)); // making sure the packet is clean (set to 0) before operating on it
-    ft_memset(&icmp_header, 0, sizeof(icmp_header) + 28); // making sure the packet is clean (set to 0) before operating on it
+    ft_memset(&icmp_packet, 0, sizeof(icmp_packet) + 28); // making sure the packet is clean (set to 0) before operating on it
 
     // describe in a struct the icmp header
-    icmp_header.icmp_type = ICMP_ECHO;
-    icmp_header.icmp_code = 0;
+    icmp_packet.icmp_type = ICMP_ECHO;
+    icmp_packet.icmp_code = 0;
     // icmp_header.icmp_id = htons(getpid()); // htons set the byte in network order
-    icmp_header.icmp_id = g_ping->program_id; // but not nescessary
+    icmp_packet.icmp_id = g_ping->program_id; // but not nescessary
     // icmp_header.icmp_seq = htons(g_ping->sequence_number);
-    icmp_header.icmp_seq = g_ping->sequence_number;
+    icmp_packet.icmp_seq = g_ping->sequence_number;
     // icmp_header.icmp_hun.ih_idseq = g_ping->sequence_number;
-    icmp_header.icmp_cksum = 0;
+    icmp_packet.icmp_cksum = 0;
     // icmp_header.icmp_cksum = calculate_icmp_checksum((unsigned short*)&icmp_header, sizeof(struct icmphdr));
 
 
 
     // data to set in the ICMP packet
-    char *data = "Hello, world!this is a very very chiant";
+    // char *data = "Hello, world!this is a very very chiant";
     // the timestamp should be the data
     // maybe a option to set on the socket
 
@@ -162,7 +177,9 @@ void icmp_packet_creation(){
 
     // copy the data into the data area of the ICMP packet
     // pointer to the start of the data area in the ICMP packet
-    ft_memcpy(icmp_header.icmp_data + sizeof(struct icmphdr), data, ft_strlen(data));
+    // ft_memcpy(icmp_packet.icmp_data + sizeof(struct icmphdr), data, ft_strlen(data));
+    ft_memcpy(icmp_packet.icmp_data, my_icmp_data, ft_strlen(my_icmp_data));
+    // ft_memcpy(icmp_packet.icmp_data + sizeof(struct icmphdr), my_icmp_data, ft_strlen(my_icmp_data));
 
     // ft_memcpy(g_ping->packet, "Hello, world!", 13);
     // ft_memcpy(&g_ping->packet, &icmp_header, sizeof(struct icmphdr));
@@ -171,8 +188,13 @@ void icmp_packet_creation(){
 
     // copy the described icmp header in the char packet
 
-    icmp_header.icmp_cksum = calculate_icmp_checksum((unsigned short*)&icmp_header, sizeof(struct icmp));
-    ft_memcpy(g_ping->packet, &icmp_header, sizeof(icmp_header));
+    fprintf(stdout, "taille de rancais=%u\n", PACKET_SIZE);
+    fprintf(stdout, "struct icmphdr size=%lu\n", sizeof(struct icmphdr));
+    fprintf(stdout, "struct icmp size=%lu\n", sizeof(struct icmp));
+    fprintf(stdout, "unsigned short size=%lu\n", sizeof(unsigned short));
+    // icmp_packet.icmp_cksum = calculate_icmp_checksum((unsigned short*)&icmp_packet, sizeof(struct icmp) + (PACKET_SIZE));
+    icmp_packet.icmp_cksum = calculate_icmp_checksum((unsigned short*)&icmp_packet, PACKET_SIZE);
+    ft_memcpy(g_ping->packet, &icmp_packet, sizeof(icmp_packet));
 }
 
 void setting_socket_option(){
@@ -308,7 +330,7 @@ void stop_program(int signal_number){
 
     fprintf(stdout, "We received the signal to stop %d\n", signal_number);
     fprintf(stdout, "this is the end of the program");
-    freeaddrinfo(g_ping->result);           /* No longer needed */
+    // freeaddrinfo(g_ping->result);           /* No longer needed */
     exit(EXIT_SUCCESS);
     fprintf(stdout, "this is after the exit of the program");
 
@@ -363,7 +385,7 @@ int main(int ac, char **av){
     //
     g_ping->sequence_number = 1;
 
-    g_ping->count = 4;
+    g_ping->count = 1;
     // g_ping->count = 0;
 
     while(g_ping->count >= g_ping->sequence_number || g_ping->count == 0){
@@ -389,7 +411,7 @@ int main(int ac, char **av){
     }
 
 
-    freeaddrinfo(g_ping->result);           /* No longer needed */
+    // freeaddrinfo(g_ping->result);           /* No longer needed */
 
     return (EXIT_SUCCESS);
 }
