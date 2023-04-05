@@ -13,7 +13,9 @@
 #include <errno.h>
 #include <netdb.h>
 
+#include <signal.h>
 #include <sys/time.h> // gettimeofday header
+#include <time.h>
 
 #define BUFFER_SIZE 1024
 
@@ -26,10 +28,47 @@
 
 t_ft_ping *g_ping;
 
+
+unsigned long timestamp_compare(void *message_timestamp){
+
+    // the real ping probably use the struct timespec than can contain Nano seconds
+    // this is why it has more frame
+    struct timeval time_value;
+    // the second argument can be set te specify a particular timezone
+    // we putt NULL to let the kernel set the timezone
+    gettimeofday(&time_value, NULL);
+
+    unsigned long diff = 0;
+
+    // Here we print the time that gettimeofday give us
+    // printf("Seconds: %ld\nMicroseconds: %ld\n", time_value.tv_sec, time_value.tv_usec);
+    // printf("Human time: %s", ctime(&time_value.tv_sec));
+
+
+    // we declare a structure to contain our data
+    // we then copy the content of this struct in our void *;
+    struct s_timestamp_container current_timestamp;
+    current_timestamp.tv_sec = time_value.tv_sec;
+    current_timestamp.tv_usec = time_value.tv_usec;
+    // ft_memcpy(message_timestamp, &current_timestamp, sizeof(struct s_timestamp_container));
+    
+    struct s_timestamp_container* received_timestamp = (struct s_timestamp_container*) message_timestamp;
+
+
+    if (current_timestamp.tv_sec == received_timestamp->tv_sec)
+    {
+        diff = current_timestamp.tv_usec - received_timestamp->tv_usec;
+    }
+
+    return (diff);
+}
+
+
 void print_information_from_received_message(char buffer[BUFFER_SIZE]){
 
     struct iphdr* ip_header = (struct iphdr*) buffer;
-    struct icmp* icmp_header = (struct icmp*) (buffer + sizeof(struct iphdr));
+    struct icmphdr* icmp_header = (struct icmphdr*) (buffer + sizeof(struct iphdr));
+    struct s_timestamp_container* timestamp = (struct s_timestamp_container*) (buffer + sizeof(struct iphdr) + sizeof(struct icmphdr));
 
     char source_address_string[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &ip_header->saddr, source_address_string, INET_ADDRSTRLEN);
@@ -49,17 +88,15 @@ void print_information_from_received_message(char buffer[BUFFER_SIZE]){
 
 
     // we display only the messages that correspond to the id of our program
-    if (icmp_header->icmp_id == g_ping->program_id){
+    if (icmp_header->un.echo.id == g_ping->program_id){
         // fprintf(stdout, "id of the icmp response:%d\n",
         //         icmp_header->icmp_id
         //         );
-        fprintf(stdout, "%d bytes from %s: icmp_seq=%d ttl=%d time=%d\n",
-                64,
+        fprintf(stdout, "from %s: icmp_seq=%d ttl=%d time=%.1f ms\n",
                 source_address_string,
-                // ntohs(icmp_header->icmp_seq),
-                icmp_header->icmp_seq,
+                icmp_header->un.echo.sequence,
                 ip_header->ttl,
-                24359
+                (double)timestamp_compare(timestamp) / 1000
                 );
     }
 }
@@ -71,14 +108,14 @@ void received_message(){
     char buffer[BUFFER_SIZE];
     struct sockaddr_in sender_address;
     struct msghdr message_header;
-    struct iovec iov;
+    struct iovec in_out_vector;
 
-    iov.iov_base = buffer;
-    iov.iov_len = sizeof(buffer);
+    in_out_vector.iov_base = buffer;
+    in_out_vector.iov_len = sizeof(buffer);
 
     message_header.msg_name = &sender_address;
     message_header.msg_namelen = sizeof(sender_address);
-    message_header.msg_iov = &iov;
+    message_header.msg_iov = &in_out_vector;
     message_header.msg_iovlen = 1;
     message_header.msg_control = NULL;
     message_header.msg_controllen = 0;
@@ -91,8 +128,9 @@ void received_message(){
         exit(1);
     }
     if (bytes_received != 0){
-        fprintf (stdout, "byte_received with recvmsg = %zu\n", bytes_received);
-        fprintf(stdout, "Received ICMP packet from %s\n", inet_ntoa(sender_address.sin_addr));
+        // fprintf (stdout, "byte_received with recvmsg = %zu\n", bytes_received);
+        fprintf (stdout, "%zu bytes ", bytes_received - sizeof(struct iphdr));
+        // fprintf(stdout, "Received ICMP packet from %s\n", inet_ntoa(sender_address.sin_addr));
         print_information_from_received_message(buffer);
     }
 
@@ -108,93 +146,92 @@ unsigned short calculate_icmp_checksum(unsigned short *addr, int size) {
     unsigned long checksum = 0;
     unsigned long sum = 0;
 
-    fprintf(stdout, "sum=%lu\n", sum);
-    fprintf(stdout, "Starting size=%u\n", size);
+    // fprintf(stdout, "sum=%lu\n", sum);
+    // fprintf(stdout, "Starting size=%u\n", size);
 
     while (size > 1) {
         sum += *addr++;
-        fprintf(stdout, "size > 1 checksum=%lu\n", sum);
-        fprintf(stdout, "New size=%u\n", size);
         size -= sizeof(unsigned short);
+        // fprintf(stdout, "size > 1 sum=%lu\n", sum);
+        // fprintf(stdout, "New size=%u\n", size);
     }
 
     if (size > 0) {
         sum += *(unsigned char*) addr;
-        fprintf(stdout, "size == 1 checksum=%lu\n", checksum);
-        // fprintf(stdout, "this is the unsigned short %u\n", *buffer);
-        // fprintf(stdout, "this is the last buffer %c\n", buffer[size]);
-        fprintf(stdout, "New size=%u\n", size);
+        // fprintf(stdout, "size == 1 sum=%lu\n", sum);
+        // fprintf(stdout, "New size=%u\n", size);
     }
-    checksum = (checksum >> 16) + (checksum & 0xffff); // put it in correct order
-    fprintf(stdout, "final calcul for checksum %lu\n", checksum);
-    checksum += (checksum >> 16);
-    unsigned short sum_bit = (unsigned short)~checksum;
-    fprintf(stdout, "unsigned short checksum=%u\n", sum_bit);
-    fprintf(stdout, "checksum that is return %lu\n", checksum);
+    sum = (sum >> 16) + (sum & 0xffff); // put it in correct order
+    // fprintf(stdout, "final calcul for sum %lu\n", sum);
+    sum += (sum >> 16);
+    // fprintf(stdout, "sum that is return %lu\n", sum);
 
 
     checksum = ~sum;    // the 1's complement of this sum is placed in the
                         // checksum field.
-    fprintf(stdout, "checksum that is return %lu\n", checksum);
+    // fprintf(stdout, "the return checksum =%lu is the 1's complement of the sum=%lu\n", checksum, sum);
     return (unsigned short) checksum;
+}
+
+
+void *timestamp_creation(void *destination){
+
+    // the real ping probably use the struct timespec than can contain Nano seconds
+    // this is why it has more frame
+    struct timeval time_value;
+    // the second argument can be set te specify a particular timezone
+    // we putt NULL to let the kernel set the timezone
+    gettimeofday(&time_value, NULL);
+
+
+    // Here we print the time that gettimeofday give us
+    // printf("Seconds: %ld\nMicroseconds: %ld\n", time_value.tv_sec, time_value.tv_usec);
+    // printf("Human time: %s", ctime(&time_value.tv_sec));
+
+
+    // we declare a structure to contain our data
+    // we then copy the content of this struct in our void *;
+    struct s_timestamp_container timestamp;
+    timestamp.tv_sec = time_value.tv_sec;
+    timestamp.tv_usec = time_value.tv_usec;
+    ft_memcpy(destination, &timestamp, sizeof(struct s_timestamp_container));
+
+
+    return (destination);
 }
 
 
 void icmp_packet_creation(){
 
-    struct icmp icmp_packet;
+    struct s_icmp_packet packet;
 
-    char my_icmp_data[PACKET_SIZE];
+    // Not nescessary since we can do all the packet
+    // int data_size = PACKET_SIZE - sizeof(struct icmphdr);
+    // ft_memset(packet.data, 0, data_size); // making sure the data packet is clean (set to 0) before operating on it
 
-    ft_memset(my_icmp_data, 0, PACKET_SIZE); // making sure the packet is clean (set to 0) before operating on it
-    //
-    // ft_memset(&icmp_header, 0, sizeof(icmp_header)); // making sure the packet is clean (set to 0) before operating on it
-    ft_memset(&icmp_packet, 0, sizeof(icmp_packet) + 28); // making sure the packet is clean (set to 0) before operating on it
+    ft_memset(&packet, 0, PACKET_SIZE); // making sure the packet is clean (set to 0) before operating on it
+
 
     // describe in a struct the icmp header
-    icmp_packet.icmp_type = ICMP_ECHO;
-    icmp_packet.icmp_code = 0;
-    // icmp_header.icmp_id = htons(getpid()); // htons set the byte in network order
-    icmp_packet.icmp_id = g_ping->program_id; // but not nescessary
-    // icmp_header.icmp_seq = htons(g_ping->sequence_number);
-    icmp_packet.icmp_seq = g_ping->sequence_number;
-    // icmp_header.icmp_hun.ih_idseq = g_ping->sequence_number;
-    icmp_packet.icmp_cksum = 0;
-    // icmp_header.icmp_cksum = calculate_icmp_checksum((unsigned short*)&icmp_header, sizeof(struct icmphdr));
+    // here our ECHO_Request
+    packet.header.type = ICMP_ECHO;
+    packet.header.code = 0;
+    // this information should be turn in network byte order with htons
+    // but it is not nescessary for the program to work
+    // its more for other program to be able to detect correctly the data
+    packet.header.un.echo.id = g_ping->program_id;
+    packet.header.un.echo.sequence = g_ping->sequence_number;
+    packet.header.checksum = 0;
+
+    // timestamp_creation(&packet.data, data_size);
+    timestamp_creation(&packet.data);
 
 
+    // We calculate checksum and put it in the correct field
+    packet.header.checksum = calculate_icmp_checksum((unsigned short*)&packet, PACKET_SIZE);
 
-    // data to set in the ICMP packet
-    // char *data = "Hello, world!this is a very very chiant";
-    // the timestamp should be the data
-    // maybe a option to set on the socket
-
-    // struct timeval tv;
-    // gettimeofday(&tv, NULL);
-    // unsigned long *timestamp_ptr = (unsigned long*)icmp_header.icmp_data;
-    // *timestamp_ptr = ((unsigned long)tv.tv_sec) * 1000 + ((unsigned long)tv.tv_usec) / 1000; // store timestamp in milliseconds
-
-
-    // copy the data into the data area of the ICMP packet
-    // pointer to the start of the data area in the ICMP packet
-    // ft_memcpy(icmp_packet.icmp_data + sizeof(struct icmphdr), data, ft_strlen(data));
-    ft_memcpy(icmp_packet.icmp_data, my_icmp_data, ft_strlen(my_icmp_data));
-    // ft_memcpy(icmp_packet.icmp_data + sizeof(struct icmphdr), my_icmp_data, ft_strlen(my_icmp_data));
-
-    // ft_memcpy(g_ping->packet, "Hello, world!", 13);
-    // ft_memcpy(&g_ping->packet, &icmp_header, sizeof(struct icmphdr));
-    //
-
-
-    // copy the described icmp header in the char packet
-
-    fprintf(stdout, "taille de rancais=%u\n", PACKET_SIZE);
-    fprintf(stdout, "struct icmphdr size=%lu\n", sizeof(struct icmphdr));
-    fprintf(stdout, "struct icmp size=%lu\n", sizeof(struct icmp));
-    fprintf(stdout, "unsigned short size=%lu\n", sizeof(unsigned short));
-    // icmp_packet.icmp_cksum = calculate_icmp_checksum((unsigned short*)&icmp_packet, sizeof(struct icmp) + (PACKET_SIZE));
-    icmp_packet.icmp_cksum = calculate_icmp_checksum((unsigned short*)&icmp_packet, PACKET_SIZE);
-    ft_memcpy(g_ping->packet, &icmp_packet, sizeof(icmp_packet));
+    // We copy the definitive packet to the struct in order to send it
+    ft_memcpy(g_ping->packet, &packet, PACKET_SIZE);
 }
 
 void setting_socket_option(){
@@ -209,9 +246,11 @@ void setting_socket_option(){
     // struct sockaddr         socket_option_value;
     // socklen_t               socket_option_len;
     // use setsockopt
+
     int time_to_live;
     time_to_live = 63;
-    int ttl = time_to_live;
+    int ttl;
+    ttl = time_to_live;
     setsockopt(g_ping->socket.file_descriptor, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
 
     int enable = 0;
@@ -331,6 +370,7 @@ void stop_program(int signal_number){
     fprintf(stdout, "We received the signal to stop %d\n", signal_number);
     fprintf(stdout, "this is the end of the program");
     // freeaddrinfo(g_ping->result);           /* No longer needed */
+    g_ping->sequence_number = 0;
     exit(EXIT_SUCCESS);
     fprintf(stdout, "this is after the exit of the program");
 
@@ -379,16 +419,20 @@ int main(int ac, char **av){
     // iterate here
     // first printf
     // PING Host IP in string 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
-    fprintf(stdout, "PING %s (%s) 56(84) bytes of data.\n", g_ping->host, g_ping->host);
-
+    fprintf(stdout, "PING %s (%s) %lu(%lu) bytes of data.\n",
+            g_ping->host,
+            g_ping->host,
+            PACKET_DATA_SIZE,
+            sizeof(struct iphdr) + PACKET_SIZE
+            );
     // wait with usleep 1 seconde between iteration
     //
     g_ping->sequence_number = 1;
 
     g_ping->count = 1;
-    // g_ping->count = 0;
+    g_ping->count = 0;
 
-    while(g_ping->count >= g_ping->sequence_number || g_ping->count == 0){
+    while((g_ping->count >= g_ping->sequence_number || g_ping->count == 0) && g_ping->sequence_number != 0){
 
         icmp_packet_creation();
 
@@ -410,6 +454,8 @@ int main(int ac, char **av){
         usleep(1000000);
     }
 
+    signal(SIGINT, stop_program);
+    fprintf(stdout, "this is after the signal handling");
 
     // freeaddrinfo(g_ping->result);           /* No longer needed */
 

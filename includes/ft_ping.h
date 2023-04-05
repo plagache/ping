@@ -8,9 +8,12 @@
 
 #include <netinet/ip.h> // header for the ip struct
 #include <netinet/ip_icmp.h> // header for the icmp struct
+#include <sys/select.h>
+#include <time.h>
 
 // #define PACKET_SIZE 4096
 #define PACKET_SIZE 64
+#define PACKET_DATA_SIZE (PACKET_SIZE - sizeof(struct icmphdr))
 
 // # define TRUE           0
 // # define FALSE          1
@@ -46,6 +49,22 @@ typedef struct          s_socket
 }                       t_socket;
 
 
+typedef struct s_icmp_packet
+{
+    struct icmphdr header;
+    char    data[PACKET_SIZE - sizeof(struct icmphdr)];
+
+} t_icmp_packet ;
+
+
+typedef struct      s_timestamp_container
+{
+    time_t          tv_sec;
+    suseconds_t     tv_usec;
+
+}                   t_timestamp_container;
+
+
 typedef struct          s_ft_ping
 {
     int                 arguments_parser;
@@ -56,8 +75,9 @@ typedef struct          s_ft_ping
 
     t_socket            socket;
 
-    // char                packet[sizeof(struct icmphdr) + 48];
     char                packet[PACKET_SIZE];
+
+    t_icmp_packet       icmp_packet;
 
     int                 sequence_number;
 
