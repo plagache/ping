@@ -92,7 +92,7 @@ void print_information_from_received_message(char buffer[BUFFER_SIZE]){
         // fprintf(stdout, "id of the icmp response:%d\n",
         //         icmp_header->icmp_id
         //         );
-        fprintf(stdout, "from %s: icmp_seq=%d ttl=%d time=%.1f ms\n",
+        fprintf(stdout, "from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
                 source_address_string,
                 icmp_header->un.echo.sequence,
                 ip_header->ttl,
