@@ -13,6 +13,7 @@
 
 // #define PACKET_SIZE 4096
 #define PACKET_SIZE 64
+#define IP_HEADER_SIZE sizeof(struct iphdr)
 #define PACKET_DATA_SIZE (PACKET_SIZE - sizeof(struct icmphdr))
 
 // # define TRUE           0
@@ -55,14 +56,6 @@ typedef struct s_icmp_packet
     char    data[PACKET_SIZE - sizeof(struct icmphdr)];
 
 } t_icmp_packet ;
-
-
-typedef struct      s_timestamp_container
-{
-    time_t          tv_sec;
-    suseconds_t     tv_usec;
-
-}                   t_timestamp_container;
 
 
 typedef struct          s_ft_ping

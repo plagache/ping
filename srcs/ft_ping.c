@@ -1,3 +1,4 @@
+#include <bits/types/struct_timeval.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
@@ -29,36 +30,24 @@
 t_ft_ping *g_ping;
 
 
-unsigned long timestamp_compare(void *message_timestamp){
+unsigned long timestamp_compare(struct timeval message_timestamp){
 
-    // the real ping probably use the struct timespec than can contain Nano seconds
-    // this is why it has more frame
-    struct timeval time_value;
+    struct timeval timestamp;
     // the second argument can be set te specify a particular timezone
     // we putt NULL to let the kernel set the timezone
-    gettimeofday(&time_value, NULL);
+    gettimeofday(&timestamp, NULL);
 
-    unsigned long diff = 0;
-
-    // Here we print the time that gettimeofday give us
-    // printf("Seconds: %ld\nMicroseconds: %ld\n", time_value.tv_sec, time_value.tv_usec);
-    // printf("Human time: %s", ctime(&time_value.tv_sec));
-
-
-    // we declare a structure to contain our data
-    // we then copy the content of this struct in our void *;
-    struct s_timestamp_container current_timestamp;
-    current_timestamp.tv_sec = time_value.tv_sec;
-    current_timestamp.tv_usec = time_value.tv_usec;
-    // ft_memcpy(message_timestamp, &current_timestamp, sizeof(struct s_timestamp_container));
-    
-    struct s_timestamp_container* received_timestamp = (struct s_timestamp_container*) message_timestamp;
+    // unsigned long time_difference = 0;
+    unsigned long time_difference;
+    // lettre grec Mu 10^(-6)
+    // unsigned long Mu_time_difference = 0;
+    unsigned long Mu_time_difference;
 
 
-    if (current_timestamp.tv_sec == received_timestamp->tv_sec)
-    {
-        diff = current_timestamp.tv_usec - received_timestamp->tv_usec;
-    }
+    time_difference = timestamp.tv_sec - message_timestamp.tv_sec;
+    Mu_time_difference = timestamp.tv_usec - message_timestamp.tv_usec;
+
+    unsigned long diff = time_difference + Mu_time_difference;
 
     return (diff);
 }
@@ -68,7 +57,7 @@ void print_information_from_received_message(char buffer[BUFFER_SIZE]){
 
     struct iphdr* ip_header = (struct iphdr*) buffer;
     struct icmphdr* icmp_header = (struct icmphdr*) (buffer + sizeof(struct iphdr));
-    struct s_timestamp_container* timestamp = (struct s_timestamp_container*) (buffer + sizeof(struct iphdr) + sizeof(struct icmphdr));
+    struct timeval* timestamp = (struct timeval*) (buffer + sizeof(struct iphdr) + sizeof(struct icmphdr));
 
     char source_address_string[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &ip_header->saddr, source_address_string, INET_ADDRSTRLEN);
@@ -96,7 +85,7 @@ void print_information_from_received_message(char buffer[BUFFER_SIZE]){
                 source_address_string,
                 icmp_header->un.echo.sequence,
                 ip_header->ttl,
-                (double)timestamp_compare(timestamp) / 1000
+                (double)timestamp_compare(*timestamp) / 1000
                 );
     }
 }
@@ -128,7 +117,7 @@ void received_message(){
         exit(1);
     }
     if (bytes_received != 0){
-        // fprintf (stdout, "byte_received with recvmsg = %zu\n", bytes_received);
+        fprintf (stdout, "byte_received with recvmsg = %zu\n", bytes_received);
         fprintf (stdout, "%zu bytes ", bytes_received - sizeof(struct iphdr));
         // fprintf(stdout, "Received ICMP packet from %s\n", inet_ntoa(sender_address.sin_addr));
         print_information_from_received_message(buffer);
@@ -142,60 +131,58 @@ void received_message(){
             /* Compute Internet Checksum for "count" bytes
             *         beginning at location "addr".
             */
-unsigned short calculate_icmp_checksum(unsigned short *addr, int size) {
-    unsigned long checksum = 0;
-    unsigned long sum = 0;
+uint16_t calculate_icmp_checksum(uint16_t *addr, int size) {
+    uint32_t checksum = 0;
+    uint32_t sum = 0;
 
+    // fprintf(stdout, "sizeof(u_char)=%lu\n", sizeof(u_char));
+    // fprintf(stdout, "sizeof(uint16_t)=%lu\n", sizeof(uint16_t));
+    // fprintf(stdout, "sizeof(uint32_t)=%lu\n", sizeof(uint32_t));
     // fprintf(stdout, "sum=%lu\n", sum);
     // fprintf(stdout, "Starting size=%u\n", size);
 
     while (size > 1) {
         sum += *addr++;
-        size -= sizeof(unsigned short);
+        size -= sizeof(uint16_t);
         // fprintf(stdout, "size > 1 sum=%lu\n", sum);
         // fprintf(stdout, "New size=%u\n", size);
     }
 
     if (size > 0) {
-        sum += *(unsigned char*) addr;
+        sum += *(u_char *) addr;
         // fprintf(stdout, "size == 1 sum=%lu\n", sum);
         // fprintf(stdout, "New size=%u\n", size);
     }
     sum = (sum >> 16) + (sum & 0xffff); // put it in correct order
-    // fprintf(stdout, "final calcul for sum %lu\n", sum);
+    fprintf(stdout, "final calcul for sum %u\n", sum);
     sum += (sum >> 16);
-    // fprintf(stdout, "sum that is return %lu\n", sum);
+    fprintf(stdout, "sum that is return %u\n", sum);
 
 
-    checksum = ~sum;    // the 1's complement of this sum is placed in the
-                        // checksum field.
-    // fprintf(stdout, "the return checksum =%lu is the 1's complement of the sum=%lu\n", checksum, sum);
-    return (unsigned short) checksum;
+    // the 1's complement of a binary number is the value obtain by inverting all the bits in the binary
+    // this name come from the fact that adding the two value would result in all 1 activated;
+    // the ~ (NOT) operator invert all bits
+    checksum = ~sum;
+    fprintf(stdout, "the return checksum =%u is the 1's complement of the sum=%u\n", checksum, sum);
+    return (uint16_t) checksum;
 }
 
 
 void *timestamp_creation(void *destination){
 
-    // the real ping probably use the struct timespec than can contain Nano seconds
-    // this is why it has more frame
-    struct timeval time_value;
+    // there is the struct timespec that can store nano second
+    struct timeval timestamp;
+
     // the second argument can be set te specify a particular timezone
     // we putt NULL to let the kernel set the timezone
-    gettimeofday(&time_value, NULL);
-
+    gettimeofday(&timestamp, NULL);
 
     // Here we print the time that gettimeofday give us
-    // printf("Seconds: %ld\nMicroseconds: %ld\n", time_value.tv_sec, time_value.tv_usec);
-    // printf("Human time: %s", ctime(&time_value.tv_sec));
+    // printf("Seconds: %ld\nMicroseconds: %ld\n", timestamp.tv_sec, timestamp.tv_usec);
+    // printf("Human time: %s", ctime(&timestamp.tv_sec));
 
-
-    // we declare a structure to contain our data
     // we then copy the content of this struct in our void *;
-    struct s_timestamp_container timestamp;
-    timestamp.tv_sec = time_value.tv_sec;
-    timestamp.tv_usec = time_value.tv_usec;
-    ft_memcpy(destination, &timestamp, sizeof(struct s_timestamp_container));
-
+    ft_memcpy(destination, &timestamp, sizeof(struct timeval));
 
     return (destination);
 }
