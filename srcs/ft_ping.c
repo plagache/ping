@@ -133,6 +133,7 @@ void received_message(){
             */
 uint16_t calculate_icmp_checksum(uint16_t *addr, int size) {
     uint32_t checksum = 0;
+    // we store the sum in 2 times the size of the checksum
     uint32_t sum = 0;
 
     // fprintf(stdout, "sizeof(u_char)=%lu\n", sizeof(u_char));
@@ -153,10 +154,12 @@ uint16_t calculate_icmp_checksum(uint16_t *addr, int size) {
         // fprintf(stdout, "size == 1 sum=%lu\n", sum);
         // fprintf(stdout, "New size=%u\n", size);
     }
-    sum = (sum >> 16) + (sum & 0xffff); // put it in correct order
-    fprintf(stdout, "final calcul for sum %u\n", sum);
+    // the and & operator example x & 0xFFFF = x
+    // >> shift to the right
+    sum = (sum >> 16) + (sum & 0xffff);
+    // fprintf(stdout, "final calcul for sum %u\n", sum);
     sum += (sum >> 16);
-    fprintf(stdout, "sum that is return %u\n", sum);
+    // fprintf(stdout, "sum that is return %u\n", sum);
 
 
     // the 1's complement of a binary number is the value obtain by inverting all the bits in the binary
