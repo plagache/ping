@@ -69,8 +69,8 @@ typedef struct          s_socket
 
 typedef struct          s_icmp_packet
 {
-    struct icmphdr header;
-    char    data[PACKET_SIZE - sizeof(struct icmphdr)];
+    struct              icmphdr header;
+    char                data[PACKET_SIZE - sizeof(struct icmphdr)];
 
 }                       t_icmp_packet ;
 
@@ -105,6 +105,7 @@ typedef struct          s_ft_ping
 
 
 extern t_ft_ping *g_ping;
+
 
 /* Parsing */
 
