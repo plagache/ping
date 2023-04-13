@@ -1,7 +1,12 @@
 NAME = ft_ping
 
-SRC = 	ft_ping.c\
-		ft_parsing.c\
+SRC = 	ping.c\
+		parsing.c\
+		address.c\
+		socket.c\
+		packet.c\
+		timestamp.c\
+		signal.c\
 
 SRCS = $(addprefix srcs/,$(SRCS))
 

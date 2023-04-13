@@ -7,6 +7,9 @@
 
 #include "ft_ping.h"
 
+// 2 types of function here 
+// detecte an option
+// set the options
 
 // verify the range
 // range should be 0.0.0.0 to 255.255.255.255
@@ -131,7 +134,7 @@ int test_option(){
     if (g_ping->options.help & ON)
         fprintf(stdout, "--- we selected -h option. ---\n\n");
 
-    fprintf(stdout, "--- Number of argument parsed = %i. ---\n\n", g_ping->arguments_parser);
+    fprintf(stdout, "--- Number of argument parsed = %i. ---\n\n", g_ping->parsed_arguments);
 
     return 0;
 }
