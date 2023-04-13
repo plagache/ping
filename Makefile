@@ -6,6 +6,8 @@ SRC = 	ping.c\
 		socket.c\
 		packet.c\
 		timestamp.c\
+		request.c\
+		reply.c\
 		signal.c\
 
 SRCS = $(addprefix srcs/,$(SRCS))

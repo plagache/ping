@@ -118,25 +118,46 @@ int activate_options(char c);
 int is_an_host(char *argument);
 int parse_host(char *host);
 
+
 /* address */
+
 int converter_address_binary();
 int get_address_information();
 
+
 /* socket */
+
 void setting_socket_option();
 int create_socket_file_descriptor(t_socket *sock);
 void raw_socket_definition();
 
+
 /* packet */
+
 uint16_t calculate_icmp_checksum(uint16_t *addr, int size);
 void icmp_packet_creation();
 void sending_packets(int file_descriptor);
+
 
 /* timestamp */
 unsigned long timestamp_compare(struct timeval message_timestamp);
 void *timestamp_creation(void *destination);
 
+
+/* request */
+
+void sending_icmp_echo_request(int file_descriptor);
+
+
+/* reply */
+
+void print_information_from_received_message(char buffer[BUFFER_SIZE]);
+void waiting_icmp_echo_reply();
+
+
 /* signal */
+
 void stop_program(int signal_number);
+
 
 #endif
