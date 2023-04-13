@@ -2,37 +2,31 @@
 # define FT_PING_H
 
 #include <bits/types/struct_timeval.h>
-#include <stddef.h>
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <errno.h>
 #include <netdb.h>
-
 #include <signal.h>
 #include <sys/time.h> // gettimeofday header
-#include <time.h>
-
-#define BUFFER_SIZE 1024
-
 #include <unistd.h> // getpid header
-
-
-
 #include <netinet/in.h>
-# include <stdint.h>
-# include <stddef.h>
-
 #include <netinet/ip.h> // header for the ip struct
 #include <netinet/ip_icmp.h> // header for the icmp struct
 #include <sys/select.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stddef.h>
 #include <time.h>
 
+
+
+#define BUFFER_SIZE 1024
 // #define PACKET_SIZE 4096
 #define PACKET_SIZE 64
 #define IP_HEADER_SIZE sizeof(struct iphdr)
@@ -44,15 +38,15 @@
 # define SUCCESS        0
 
 
-/*
-**  Definition des Structure de Ping
-*/
 
 
 # define PING_OPTIONS       "vh"
 # define ON                 1
 # define OFF                0
 
+/*
+**  Definition des Structure de Ping
+*/
 
 typedef struct          s_options_ping
 {

@@ -1,28 +1,3 @@
-#include <bits/types/struct_timeval.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <netinet/ip_icmp.h>
-#include <stddef.h>
-#include <arpa/inet.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <errno.h>
-#include <netdb.h>
-
-#include <signal.h>
-#include <sys/time.h> // gettimeofday header
-#include <time.h>
-
-#define BUFFER_SIZE 1024
-
-#include <unistd.h> // getpid header
-
-
 #include "ft_ping.h"
 #include "libft.h"
 
