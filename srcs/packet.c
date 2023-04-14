@@ -1,5 +1,4 @@
 #include "ft_ping.h"
-#include "libft.h"
 
 
 // rfc1071
