@@ -1,5 +1,4 @@
 #include "ft_ping.h"
-#include "libft.h"
 
 unsigned long timestamp_compare(struct timeval message_timestamp){
 

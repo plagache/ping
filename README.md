@@ -1,15 +1,20 @@
 # ping
 
-## list
+## ToDo
 
 - [x] Parsing
 - [ ] gestion erreur
+- [ ] Add count option
+- [ ] gestion address literral
+- [ ] there is a problem with the timestamp
 - [x] determiner a qui ont veux envoyer la request | DNS getaddrinfo
 - [x] create socket
-- [ ] ICMP echo request creation
-- [ ] send
-- [ ] package received
-- [ ] fonctionnement
+- [x] ICMP echo request creation
+- [x] send
+- [x] package received
+- [ ] verified that the package received has a good info
+- [x] fonctionnement
+- [ ] clean multiple function
 
 
 ## Notes

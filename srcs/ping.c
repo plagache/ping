@@ -12,6 +12,13 @@ int main(int ac, char **av){
 
     g_ping = &ping_data;
 
+    g_ping->sequence_number = 1;
+    g_ping->program_id = getpid();
+    // set with an option
+    g_ping->count = 1;
+    g_ping->count = 0;
+
+    signal(SIGINT, stop_program);
 
     g_ping->parsed_arguments = ft_lexer(ac, av);
 
@@ -23,7 +30,6 @@ int main(int ac, char **av){
     else if (g_ping->parsed_arguments == ac) {
         // fprintf (stderr, "lexer is ok: ac = %i\n", g_ping->arguments_parser);
     }
-
     // test_option();
 
 
@@ -34,7 +40,6 @@ int main(int ac, char **av){
     //     exit(EXIT_FAILURE);
     // }
 
-    g_ping->program_id = getpid();
 
     converter_address_binary();
 
@@ -53,14 +58,8 @@ int main(int ac, char **av){
             PACKET_DATA_SIZE,
             sizeof(struct iphdr) + PACKET_SIZE
             );
-    // wait with usleep 1 seconde between iteration
-    //
-    g_ping->sequence_number = 1;
 
-    g_ping->count = 1;
-    g_ping->count = 0;
-
-    while((g_ping->count >= g_ping->sequence_number || g_ping->count == 0) && g_ping->sequence_number != 0){
+    while(g_ping->count != g_ping->sequence_number && g_ping->sequence_number != 0){
 
         icmp_packet_creation();
 
@@ -82,8 +81,7 @@ int main(int ac, char **av){
         usleep(1000000);
     }
 
-    signal(SIGINT, stop_program);
-    fprintf(stdout, "this is after the signal handling");
+    fprintf(stdout, "this is after the signal handling\n");
 
     // freeaddrinfo(g_ping->result);           /* No longer needed */
 

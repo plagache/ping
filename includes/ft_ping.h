@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <time.h>
+#include "libft.h"
 
 
 
@@ -96,6 +97,8 @@ typedef struct          s_ft_ping
     int                 program_id;
 
     int                 sequence_number;
+
+    int                 message_received;
 
     size_t              bytes_received;
 

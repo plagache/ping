@@ -1,5 +1,4 @@
 #include "ft_ping.h"
-#include "libft.h"
 
 
 int converter_address_binary(){
@@ -26,7 +25,7 @@ int converter_address_binary(){
     if ( g_ping->internet_address.sin_family == AF_INET)
         fprintf (stderr, "not bad\n" );
     // we clean this
-    memset(&internet_address_string, '\0', sizeof(internet_address_string));
+    ft_memset(&internet_address_string, '\0', sizeof(internet_address_string));
     if (inet_ntop(AF_INET, &g_ping->internet_address.sin_addr, internet_address_string, INET_ADDRSTRLEN) == NULL){
         perror("inet_ntop");
         fprintf (stderr, "Error : %s | on function ntop.\n", strerror(errno));
@@ -44,7 +43,7 @@ int get_address_information(){
     struct addrinfo         hints;
     // struct addrinfo         *result;
 
-    memset(&hints, 0, sizeof(hints));
+    ft_memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;    /* Allow IPv4 */
     hints.ai_socktype = 0; /* RAW socket */
     hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
