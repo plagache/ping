@@ -27,10 +27,14 @@
 
 
 
-#define BUFFER_SIZE 1024
+// #define IP_MAX_SIZE 65535
+// #define BUFFER_SIZE 1024
 // #define PACKET_SIZE 4096
 #define PACKET_SIZE 64
+// #define PACKET_SIZE 65535
 #define IP_HEADER_SIZE sizeof(struct iphdr)
+// #define PACKET_SIZE 1492 - IP_HEADER_SIZE
+#define BUFFER_SIZE 1492 - IP_HEADER_SIZE
 #define PACKET_DATA_SIZE (PACKET_SIZE - sizeof(struct icmphdr))
 
 // # define TRUE           0
@@ -68,6 +72,16 @@ typedef struct          s_socket
 }                       t_socket;
 
 
+typedef struct          s_icmp_packet_reply
+{
+    struct              iphdr ip_header;
+    struct              icmphdr icmp_header;
+    struct              timeval timestamp;
+    uint8_t             data;
+
+}                       t_icmp_packet_reply;
+
+
 typedef struct          s_icmp_packet
 {
     struct              icmphdr header;
@@ -94,13 +108,17 @@ typedef struct          s_ft_ping
 
     t_icmp_packet       icmp_packet;
 
+    t_icmp_packet_reply icmp_echo_reply;
+
     int                 program_id;
 
     int                 sequence_number;
 
     int                 message_received;
 
-    size_t              bytes_received;
+    ssize_t             bytes_received;
+
+    ssize_t             bytes_send;
 
     struct addrinfo     *result;
 
@@ -155,7 +173,7 @@ void sending_icmp_echo_request(int file_descriptor);
 
 /* reply */
 
-void print_information_from_received_message(char buffer[BUFFER_SIZE]);
+void print_information_from_received_message(t_icmp_packet_reply* echo_reply);
 void waiting_icmp_echo_reply();
 
 
@@ -163,5 +181,9 @@ void waiting_icmp_echo_reply();
 
 void stop_program(int signal_number);
 
+
+/* print_memory */
+
+void print_memory(void *buffer, ssize_t size);
 
 #endif

@@ -9,6 +9,7 @@ SRC = 	ping.c\
 		request.c\
 		reply.c\
 		signal.c\
+		print_memory.c\
 
 SRCS = $(addprefix srcs/,$(SRCS))
 

@@ -1,6 +1,6 @@
 clear
 
-make re
+make
 # make static
 
 

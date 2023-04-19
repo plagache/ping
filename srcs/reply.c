@@ -1,41 +1,39 @@
 #include "ft_ping.h"
+#include "libft.h"
 
 
-void print_information_from_received_message(char buffer[BUFFER_SIZE]){
-
-    struct iphdr* ip_header = (struct iphdr*) buffer;
-    struct icmphdr* icmp_header = (struct icmphdr*) (buffer + sizeof(struct iphdr));
-    struct timeval* timestamp = (struct timeval*) (buffer + sizeof(struct iphdr) + sizeof(struct icmphdr));
+void print_information_from_received_message(t_icmp_packet_reply* echo_reply){
 
     char source_address_string[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &ip_header->saddr, source_address_string, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &echo_reply->ip_header.saddr, source_address_string, INET_ADDRSTRLEN);
     char destination_address_string[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &ip_header->daddr, destination_address_string, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &echo_reply->ip_header.daddr, destination_address_string, INET_ADDRSTRLEN);
 
     // fprintf(stdout, "IP header: ttl=%d version=%d\n protocol=%d, check=%d\n frag_off=%d, id=%d, ihl=%d\n source=%s, destination=%s\n",
-    //        ip_header->ttl,
-    //        ip_header->version,
-    //        ip_header->protocol,
-    //        ip_header->check,
-    //        ip_header->frag_off,
-    //        ip_header->id,
-    //        ip_header->ihl,
+    //        echo_reply->ip_header.ttl,
+    //        echo_reply->ip_header.version,
+    //        echo_reply->ip_header.protocol,
+    //        echo_reply->ip_header.check,
+    //        echo_reply->ip_header.frag_off,
+    //        echo_reply->ip_header.id,
+    //        echo_reply->ip_header.ihl,
     //        source_address_string,
     //        destination_address_string);
 
     // verify_checksum ?
 
     // we display only the messages that correspond to the id of our program
-    if (icmp_header->un.echo.id == g_ping->program_id){
-        // fprintf(stdout, "id of the icmp response:%d\n",
-        //         icmp_header->icmp_id
-        //         );
+        fprintf(stdout, "program id :%d\nid of the icmp response:%d\n",
+                g_ping->program_id,
+                echo_reply->icmp_header.un.echo.id
+                );
+    if (echo_reply->icmp_header.un.echo.id == g_ping->program_id){
         fprintf(stdout, "%lu bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
                 g_ping->bytes_received - sizeof(struct iphdr),
                 source_address_string,
-                icmp_header->un.echo.sequence,
-                ip_header->ttl,
-                (double)timestamp_compare(*timestamp) / 1000
+                echo_reply->icmp_header.un.echo.sequence,
+                echo_reply->ip_header.ttl,
+                (double)timestamp_compare(echo_reply->timestamp) / 1000
                 );
     }
 }
@@ -43,22 +41,26 @@ void print_information_from_received_message(char buffer[BUFFER_SIZE]){
 
 void waiting_icmp_echo_reply(){
 
-    char buffer[BUFFER_SIZE];
+    uint8_t buffer[BUFFER_SIZE];
     // struct sockaddr_in sender_address;
     struct msghdr message_header;
     struct iovec in_out_vector;
+    // fprintf(stdout, "buffer avant memset%s\n", buffer);
+    ft_memset(&buffer, 0, sizeof(buffer));
+    ft_memset(&message_header, 0, sizeof(message_header));
+    ft_memset(&in_out_vector, 0, sizeof(in_out_vector));
 
     in_out_vector.iov_base = buffer;
     in_out_vector.iov_len = sizeof(buffer);
-
+    //
     // message_header.msg_name = &sender_address;
     // message_header.msg_namelen = sizeof(sender_address);
     message_header.msg_iov = &in_out_vector;
     message_header.msg_iovlen = 1;
-    message_header.msg_control = NULL;
-    message_header.msg_controllen = 0;
-    message_header.msg_flags = 0;
-
+    // message_header.msg_control = NULL;
+    // message_header.msg_controllen = 0;
+    // message_header.msg_flags = 0;
+    //
     g_ping->bytes_received = recvmsg(g_ping->socket.file_descriptor, &message_header, 0);
 
     if (g_ping->bytes_received < 0) {
@@ -66,11 +68,18 @@ void waiting_icmp_echo_reply(){
         exit(1);
     }
 
+    // fprintf (stdout, "byte_received with recvmsg = %zu\n", g_ping->bytes_received);
+    // print_information_from_received_message(in_out_vector.iov_base);
     if (g_ping->bytes_received != 0){
-        // fprintf (stdout, "byte_received with recvmsg = %zu\n", g_ping->bytes_received);
+        fprintf (stdout, "byte_received with recvmsg = %zu\n", g_ping->bytes_received);
+        // fprintf (stdout, "another byte_received with recvmsg = %zu\n", sizeof(g_ping->bytes_received));
         // fprintf (stdout, "%zu bytes ", g_ping->bytes_received - sizeof(struct iphdr));
         // fprintf(stdout, "Received ICMP packet from %s\n", inet_ntoa(sender_address.sin_addr));
-        print_information_from_received_message(buffer);
+        // print_information_from_received_message(buffer);
+        // ft_memset(&g_ping->icmp_echo_reply , 0, sizeof(g_ping->icmp_echo_reply));
+        g_ping->icmp_echo_reply = *(t_icmp_packet_reply*)in_out_vector.iov_base;
+        // print_memory(&g_ping->icmp_echo_reply, sizeof(g_ping->icmp_echo_reply));
+        print_information_from_received_message(&g_ping->icmp_echo_reply);
     }
 
 }
