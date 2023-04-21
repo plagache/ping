@@ -41,6 +41,8 @@
 // # define FALSE          1
 # define FAILURE        1
 # define SUCCESS        0
+# define INVALID        1
+# define VALID          0
 
 
 
@@ -114,7 +116,11 @@ typedef struct          s_ft_ping
 
     int                 sequence_number;
 
+    int                 message_sent;
+
     int                 message_received;
+
+    int                 valide_message;
 
     ssize_t             bytes_received;
 
@@ -156,6 +162,7 @@ void raw_socket_definition();
 
 /* packet */
 
+int validate_icmp_checksum();
 uint16_t calculate_icmp_checksum(uint16_t *addr, int size);
 void icmp_packet_creation();
 void sending_packets(int file_descriptor);
@@ -173,6 +180,7 @@ void sending_icmp_echo_request(int file_descriptor);
 
 /* reply */
 
+int check_reply_validity(t_icmp_packet_reply* echo_reply);
 void print_information_from_received_message(t_icmp_packet_reply* echo_reply);
 void waiting_icmp_echo_reply();
 

@@ -15,6 +15,8 @@ void sending_icmp_echo_request(int file_descriptor){
         fprintf (stdout, "bytes_send with sendto = %zu\n", g_ping->bytes_send);
         fprintf (stderr, "Error : %s | on function sending packets.\n", strerror(errno));
     }
+    if (g_ping->bytes_send > 0)
+        g_ping->message_sent++;
 
     // fprintf (stdout, "bytes_send with sendto = %zu\n", g_ping->bytes_send);
 }

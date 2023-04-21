@@ -1,6 +1,42 @@
 #include "ft_ping.h"
-#include "libft.h"
 
+int check_reply_validity(t_icmp_packet_reply* echo_reply){
+
+    int validity;
+
+    validity = VALID;
+
+    char source_address_string[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &echo_reply->ip_header.saddr, source_address_string, INET_ADDRSTRLEN);
+    char destination_address_string[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &echo_reply->ip_header.daddr, destination_address_string, INET_ADDRSTRLEN);
+
+    // fprintf (stdout, "Start validity : %i\n", validity);
+    if (ft_strcmp(source_address_string, g_ping->host) != 0)
+        validity = INVALID;
+    // fprintf(stdout, "%s\n", source_address_string);
+    // fprintf(stdout, "%s\n", g_ping->host);
+    // fprintf (stdout, "Source validity : %i\n", validity);
+    if (echo_reply->icmp_header.un.echo.id != g_ping->program_id){
+        validity = INVALID;
+    }
+    // fprintf (stdout, "Program ID validity : %i\n", validity);
+    if (echo_reply->icmp_header.type != 0){
+        validity = INVALID;
+    }
+    // fprintf (stdout, "Type is Reply validity : %i\n", validity);
+    if (validate_icmp_checksum() != VALID){
+        // fprintf (stdout, "INVALID PACKET \n");
+        validity = INVALID;
+    }
+
+    // fprintf (stdout, "Checksum validity : %i\n", validity);
+
+    if (validity == VALID)
+        g_ping->valide_message++;
+
+    return validity;
+}
 
 void print_information_from_received_message(t_icmp_packet_reply* echo_reply){
 
@@ -23,10 +59,10 @@ void print_information_from_received_message(t_icmp_packet_reply* echo_reply){
     // verify_checksum ?
 
     // we display only the messages that correspond to the id of our program
-        fprintf(stdout, "program id :%d\nid of the icmp response:%d\n",
-                g_ping->program_id,
-                echo_reply->icmp_header.un.echo.id
-                );
+        // fprintf(stdout, "program id :%d\nid of the icmp response:%d\n",
+        //         g_ping->program_id,
+        //         echo_reply->icmp_header.un.echo.id
+        //         );
     if (echo_reply->icmp_header.un.echo.id == g_ping->program_id){
         fprintf(stdout, "%lu bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
                 g_ping->bytes_received - sizeof(struct iphdr),
@@ -71,15 +107,12 @@ void waiting_icmp_echo_reply(){
     // fprintf (stdout, "byte_received with recvmsg = %zu\n", g_ping->bytes_received);
     // print_information_from_received_message(in_out_vector.iov_base);
     if (g_ping->bytes_received != 0){
-        fprintf (stdout, "byte_received with recvmsg = %zu\n", g_ping->bytes_received);
-        // fprintf (stdout, "another byte_received with recvmsg = %zu\n", sizeof(g_ping->bytes_received));
-        // fprintf (stdout, "%zu bytes ", g_ping->bytes_received - sizeof(struct iphdr));
-        // fprintf(stdout, "Received ICMP packet from %s\n", inet_ntoa(sender_address.sin_addr));
-        // print_information_from_received_message(buffer);
-        // ft_memset(&g_ping->icmp_echo_reply , 0, sizeof(g_ping->icmp_echo_reply));
+        // fprintf (stdout, "byte_received with recvmsg = %zu\n", g_ping->bytes_received);
+        // fprintf (stdout, "icmp_header size = %zu\n", g_ping->bytes_received - sizeof(struct iphdr));
         g_ping->icmp_echo_reply = *(t_icmp_packet_reply*)in_out_vector.iov_base;
         // print_memory(&g_ping->icmp_echo_reply, sizeof(g_ping->icmp_echo_reply));
-        print_information_from_received_message(&g_ping->icmp_echo_reply);
+        if (check_reply_validity(&g_ping->icmp_echo_reply) == VALID)
+            print_information_from_received_message(&g_ping->icmp_echo_reply);
     }
 
 }

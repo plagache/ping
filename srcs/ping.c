@@ -13,6 +13,8 @@ int main(int ac, char **av){
     g_ping = &ping_data;
 
     g_ping->sequence_number = 1;
+    g_ping->valide_message = 0;
+    g_ping->message_sent = 0;
     g_ping->program_id = getpid();
     // set with an option
     g_ping->count = 1;
@@ -81,7 +83,13 @@ int main(int ac, char **av){
         usleep(1000000);
     }
 
-    fprintf(stdout, "this is after the signal handling\n");
+    // fprintf(stdout, "this is after the signal handling\n");
+    fprintf(stdout, "--- %s ping statistics ---\n", g_ping->host);
+    fprintf(stdout, "%i packets transmitted, %i received\n", g_ping->message_sent, g_ping->valide_message);
+    // if (g_ping->valide_message != 0 && g_ping->message_sent != 0)
+    //     fprintf(stdout, "%f%% packets loss, times ??\n", (float)(g_ping->valide_message / g_ping->message_sent));
+    // else
+    //     fprintf(stdout, "100%% packets loss, times ??\n");
 
     // freeaddrinfo(g_ping->result);           /* No longer needed */
 

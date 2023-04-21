@@ -1,5 +1,21 @@
 #include "ft_ping.h"
 
+int validate_icmp_checksum() {
+
+    t_icmp_packet_reply reply;
+    uint16_t stored_checksum;
+
+    reply = g_ping->icmp_echo_reply;
+    stored_checksum = reply.icmp_header.checksum;
+    reply.icmp_header.checksum = 0;
+
+    if (stored_checksum == calculate_icmp_checksum((uint16_t*)&reply, sizeof(reply)))
+        return VALID;
+    else
+        fprintf (stdout, "INVALID PACKET \n");
+
+    return INVALID;
+}
 
 // rfc1071
 // the icmp checksum field is 2 bytes or 16 bits
@@ -65,7 +81,7 @@ void icmp_packet_creation(){
 
 
     // We calculate checksum and put it in the correct field
-    packet.header.checksum = calculate_icmp_checksum((unsigned short*)&packet, PACKET_SIZE);
+    packet.header.checksum = calculate_icmp_checksum((uint16_t*)&packet, PACKET_SIZE);
 
     // We copy the definitive packet to the struct in order to send it
     ft_memcpy(g_ping->packet, &packet, PACKET_SIZE);
