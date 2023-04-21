@@ -17,7 +17,9 @@ unsigned long timestamp_compare(struct timeval message_timestamp){
 
     time_difference = current_timestamp.tv_sec - message_timestamp.tv_sec;
     Mu_time_difference = current_timestamp.tv_usec - message_timestamp.tv_usec;
-    // printf("Seconds: %lu\nMicroseconds: %lu\n", time_difference, Mu_time_difference);
+    printf("Seconds: %lu\nMicroseconds: %lu\n", time_difference, Mu_time_difference);
+    printf("Previous Second: %lu\nCurrent Seconds: %lu\n", message_timestamp.tv_sec, current_timestamp.tv_sec);
+    printf("Previous MU Second: %lu\nCurrent MU Seconds: %lu\n", message_timestamp.tv_usec, current_timestamp.tv_usec);
 
     unsigned long diff = (time_difference * 1000) + Mu_time_difference;
 
