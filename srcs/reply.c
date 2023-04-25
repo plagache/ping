@@ -6,31 +6,21 @@ int check_reply_validity(t_icmp_packet_reply* echo_reply){
 
     validity = VALID;
 
-    char source_address_string[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &echo_reply->ip_header.saddr, source_address_string, INET_ADDRSTRLEN);
-    char destination_address_string[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &echo_reply->ip_header.daddr, destination_address_string, INET_ADDRSTRLEN);
-
-    // fprintf (stdout, "Start validity : %i\n", validity);
-    if (ft_strcmp(source_address_string, g_ping->host) != 0)
+    if (g_ping->ipv4_address.sin_addr.s_addr != echo_reply->ip_header.saddr)
         validity = INVALID;
-    // fprintf(stdout, "%s\n", source_address_string);
-    // fprintf(stdout, "%s\n", g_ping->host);
-    // fprintf (stdout, "Source validity : %i\n", validity);
+
     if (echo_reply->icmp_header.un.echo.id != g_ping->program_id){
         validity = INVALID;
     }
-    // fprintf (stdout, "Program ID validity : %i\n", validity);
+
     if (echo_reply->icmp_header.type != 0){
         validity = INVALID;
     }
-    // fprintf (stdout, "Type is Reply validity : %i\n", validity);
+
     if (validate_icmp_checksum() != VALID){
         // fprintf (stdout, "INVALID PACKET \n");
         validity = INVALID;
     }
-
-    // fprintf (stdout, "Checksum validity : %i\n", validity);
 
     if (validity == VALID)
         g_ping->valide_message++;
@@ -69,7 +59,7 @@ void print_information_from_received_message(t_icmp_packet_reply* echo_reply){
                 source_address_string,
                 echo_reply->icmp_header.un.echo.sequence,
                 echo_reply->ip_header.ttl,
-                (double)timestamp_compare(echo_reply->timestamp) / 1000
+                (double)compare_timestamp(echo_reply->timestamp) / 1000
                 );
     }
 }

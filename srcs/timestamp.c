@@ -1,6 +1,6 @@
 #include "ft_ping.h"
 
-unsigned long timestamp_compare(struct timeval message_timestamp){
+unsigned long compare_timestamp(struct timeval message_timestamp){
 
     struct timeval current_timestamp;
     // the second argument of gettimeofday can be set:
@@ -27,7 +27,7 @@ unsigned long timestamp_compare(struct timeval message_timestamp){
 }
 
 
-void *timestamp_creation(void *destination){
+void *create_timestamp(void *destination){
 
     // there is the struct timespec that can store nano second
     struct timeval timestamp;

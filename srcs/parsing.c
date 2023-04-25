@@ -1,4 +1,5 @@
 #include "ft_ping.h"
+#include <stdlib.h>
 
 // 2 types of function here 
 // detecte an option
@@ -6,7 +7,7 @@
 
 // verify the range
 // range should be 0.0.0.0 to 255.255.255.255
-int parse_host(char *host){
+int set_host(char *host){
 
     if (!host){
         fprintf (stderr, "%s\n", "no 'G' host ?\n");
@@ -23,19 +24,23 @@ int parse_host(char *host){
 // Ip adresse : format 8.8.8.8
 // host name : format text.com
 // there is a list of possible local for .com .org ...
-int is_an_host(char *argument){
+int set_host_type(char *argument){
     size_t iterator;
     iterator = 0;
 
-    if (isdigit(argument[iterator]) != 0){
-        fprintf(stdout, "ARG IS AN HOST [ V ] : %s\n", argument);
-        fprintf(stdout, "HOST IS OF TYPE 0.0.0.0\n");
+    if (ft_isdigit(argument[iterator]) != 0){
+        // fprintf(stdout, "ARG IS AN HOST [ V ] : %s\n", argument);
+        // fprintf(stdout, "HOST IS OF TYPE 0.0.0.0\n");
+        g_ping->ip_address = g_ping->host;
+        ip_address_to_struct();
         return (EXIT_SUCCESS);
     }
 
-    if (isalpha(argument[iterator]) != 0){
-        fprintf(stdout, "ARG IS AN HOST [ V ] : %s\n", argument);
-        fprintf(stdout, "HOST IS OF TYPE text.com\n");
+    if (ft_isalpha(argument[iterator]) != 0){
+        // fprintf(stdout, "ARG IS AN HOST [ V ] : %s\n", argument);
+        // fprintf(stdout, "HOST IS OF TYPE text.com\n");
+        g_ping->hostname = g_ping->host;
+        hostname_to_struct();
         return (EXIT_SUCCESS);
     }
     fprintf(stdout, "ARG IS AN HOST [ X ] : %s\n", argument);
@@ -49,6 +54,8 @@ int activate_options(char c){
         g_ping->options.verbose |= ON;
     if (c == 'h')
         g_ping->options.help = g_ping->options.help | ON;
+    // if (c == 'c')
+    //     g_ping->count = 0;
     return 0;
 
 }
@@ -109,8 +116,8 @@ int ft_lexer(int ac, char **av){
         }
 
         // is this the host that we should treat ?
-        else if (is_an_host(av[iterator]) == SUCCESS){
-            if (parse_host(av[iterator]) == EXIT_FAILURE)
+        else if (set_host(av[iterator]) == EXIT_SUCCESS){
+            if (set_host_type(av[iterator]) == EXIT_FAILURE)
                 return EXIT_FAILURE;
         }
         iterator++;

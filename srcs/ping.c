@@ -1,4 +1,5 @@
 #include "ft_ping.h"
+#include "libft.h"
 
 
 t_ft_ping *g_ping;
@@ -6,15 +7,15 @@ t_ft_ping *g_ping;
 
 int main(int ac, char **av){
 
-    // int                     getaddrinfo_return;
     // struct addrinfo         *rp;
     t_ft_ping               ping_data;
 
     g_ping = &ping_data;
 
+    ft_memset(&g_ping->ip_address, 0, sizeof(g_ping->ip_address));
     g_ping->sequence_number = 1;
     g_ping->valide_message = 0;
-    g_ping->message_sent = 0;
+    g_ping->packets_sent = 0;
     g_ping->program_id = getpid();
     // set with an option
     g_ping->count = 1;
@@ -34,36 +35,28 @@ int main(int ac, char **av){
     }
     // test_option();
 
+    if (g_ping->host == NULL)
+        fprintf(stderr, "No Host");
 
-    // getaddrinfo_return = get_address_information();
-    //
-    // if (getaddrinfo_return != 0) {
-    //     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(getaddrinfo_return));
-    //     exit(EXIT_FAILURE);
-    // }
-
-
-    converter_address_binary();
-
-    raw_socket_definition();
+    define_raw_socket();
 
     create_socket_file_descriptor(&g_ping->socket);
 
     setting_socket_option();
 
     // iterate here
-    // first printf
+    // first printf example :
     // PING Host IP in string 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
     fprintf(stdout, "PING %s (%s) %lu(%lu) bytes of data.\n",
             g_ping->host,
-            g_ping->host,
+            g_ping->ip_address,
             PACKET_DATA_SIZE,
             sizeof(struct iphdr) + PACKET_SIZE
             );
 
     while(g_ping->count != g_ping->sequence_number && g_ping->sequence_number != 0){
 
-        icmp_packet_creation();
+        create_icmp_packet();
 
         sending_icmp_echo_request(g_ping->socket.file_descriptor);
 
@@ -85,13 +78,12 @@ int main(int ac, char **av){
 
     // fprintf(stdout, "this is after the signal handling\n");
     fprintf(stdout, "--- %s ping statistics ---\n", g_ping->host);
-    fprintf(stdout, "%i packets transmitted, %i received\n", g_ping->message_sent, g_ping->valide_message);
+    fprintf(stdout, "%zu packets transmitted, %i received\n", g_ping->packets_sent, g_ping->valide_message);
     // if (g_ping->valide_message != 0 && g_ping->message_sent != 0)
     //     fprintf(stdout, "%f%% packets loss, times ??\n", (float)(g_ping->valide_message / g_ping->message_sent));
     // else
     //     fprintf(stdout, "100%% packets loss, times ??\n");
 
-    // freeaddrinfo(g_ping->result);           /* No longer needed */
 
     return (EXIT_SUCCESS);
 }

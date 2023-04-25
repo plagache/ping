@@ -102,7 +102,11 @@ typedef struct          s_ft_ping
 
     char                *host;
 
-    struct sockaddr_in  internet_address;
+    char                *hostname;
+
+    char                *ip_address;
+
+    struct sockaddr_in  ipv4_address;
 
     t_socket            socket;
 
@@ -116,17 +120,17 @@ typedef struct          s_ft_ping
 
     int                 sequence_number;
 
-    int                 message_sent;
+    size_t              packets_sent;
 
-    int                 message_received;
+    size_t              packets_recv;
 
     int                 valide_message;
 
     ssize_t             bytes_received;
 
-    ssize_t             bytes_send;
+    int                 bytes_send;
 
-    struct addrinfo     *result;
+    // struct addrinfo     *result;
 
 }                       t_ft_ping;
 
@@ -143,34 +147,35 @@ int is_an_option(char *argument);
 int parse_option(char *opt);
 int activate_options(char c);
 
-int is_an_host(char *argument);
-int parse_host(char *host);
+int set_host_type(char *argument);
+int set_host(char *host);
 
 
 /* address */
 
-int converter_address_binary();
-int get_address_information();
+void ip_address_to_struct();
+void hostname_to_struct();
 
 
 /* socket */
 
 void setting_socket_option();
 int create_socket_file_descriptor(t_socket *sock);
-void raw_socket_definition();
+void define_raw_socket();
 
+/* checksum */
+
+int validate_icmp_checksum();
+uint16_t compute_icmp_checksum(uint16_t *addr, int size);
 
 /* packet */
 
-int validate_icmp_checksum();
-uint16_t calculate_icmp_checksum(uint16_t *addr, int size);
-void icmp_packet_creation();
-void sending_packets(int file_descriptor);
+void create_icmp_packet();
 
 
 /* timestamp */
-unsigned long timestamp_compare(struct timeval message_timestamp);
-void *timestamp_creation(void *destination);
+unsigned long compare_timestamp(struct timeval message_timestamp);
+void *create_timestamp(void *destination);
 
 
 /* request */

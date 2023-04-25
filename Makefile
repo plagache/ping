@@ -2,6 +2,7 @@ NAME = ft_ping
 
 SRC = 	ping.c\
 		parsing.c\
+		checksum.c\
 		address.c\
 		socket.c\
 		packet.c\

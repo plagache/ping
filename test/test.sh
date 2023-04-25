@@ -4,7 +4,7 @@ make
 # make static
 
 
-./ft_ping -vh 8.8.8.8
+# ./ft_ping -vh 8.8.8.8
 
 # printf "\n--------------\n"
 
@@ -20,5 +20,5 @@ make
 # ./ft_ping 8.8.8.8 -vh
 
 printf "\n--------------\n"
-# ./ft_ping google.com
+./ft_ping google.com
 # ./ft_ping google.com -vhx

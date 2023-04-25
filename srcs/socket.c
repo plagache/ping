@@ -40,7 +40,7 @@ int create_socket_file_descriptor(t_socket *sock){
 }
 
 
-void raw_socket_definition() {
+void define_raw_socket() {
 
     g_ping->socket.type = SOCK_RAW;
     // g_ping->socket.protocol = IPPROTO_RAW;                 // cf the man page protocols definition
