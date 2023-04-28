@@ -4,16 +4,17 @@
 
 double get_time_diff(struct timeval *start, struct timeval *end){
 
+    // return a diff in nMicroseconds;
     double diff;
 
     // diff until the second;
-    diff = (double) (end->tv_sec - start->tv_sec);
+    diff = (double) (end->tv_sec - start->tv_sec) * MU;
     // fprintf (stdout, "diff: %e\n", diff);
     // printf("Time Diff Sec: %li\n Time diff MuSec: %li\n", time_difference, Mu_time_difference);
     // printf("start: %li\nend: %li\n", start->tv_sec, end->tv_sec);
     // printf("Previous MU Second: %li\nCurrent MU Seconds: %li\n", message_timestamp->tv_usec, current_timestamp.tv_usec);
     // then we diff the Mu second and add it to the diff;
-    diff += (double) (end->tv_usec - start->tv_usec) / MU;
+    diff += (double) (end->tv_usec - start->tv_usec);
     // fprintf (stdout, "diff: %e\n", diff);
     // printf("start: %li\nend: %li\n", start->tv_usec, end->tv_usec);
 

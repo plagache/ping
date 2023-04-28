@@ -6,7 +6,7 @@ SRC = 	ping.c\
 		address.c\
 		socket.c\
 		packet.c\
-		timestamp.c\
+		time.c\
 		request.c\
 		reply.c\
 		signal.c\

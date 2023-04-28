@@ -1,5 +1,4 @@
 #include "ft_ping.h"
-#include <bits/types/struct_timeval.h>
 
 int check_reply_validity(t_icmp_packet_reply* echo_reply){
 
@@ -62,7 +61,7 @@ void print_information_from_received_message(t_icmp_packet_reply* echo_reply){
                 source_address_string,
                 echo_reply->icmp_header.un.echo.sequence,
                 echo_reply->ip_header.ttl,
-                (double)get_current_time_diff((struct timeval*)echo_reply->data) * 1000
+                (double)get_current_time_diff((struct timeval*)echo_reply->data) / 1000
                 );
     }
 }
