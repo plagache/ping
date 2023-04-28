@@ -1,33 +1,39 @@
 #include "ft_ping.h"
+#include <sys/select.h>
+#include <time.h>
 
-unsigned long compare_timestamp(struct timeval message_timestamp){
+double get_time_diff(struct timeval *start, struct timeval *end){
+
+    double diff;
+
+    // diff until the second;
+    diff = (double) (end->tv_sec - start->tv_sec);
+    // fprintf (stdout, "diff: %e\n", diff);
+    // printf("Time Diff Sec: %li\n Time diff MuSec: %li\n", time_difference, Mu_time_difference);
+    // printf("start: %li\nend: %li\n", start->tv_sec, end->tv_sec);
+    // printf("Previous MU Second: %li\nCurrent MU Seconds: %li\n", message_timestamp->tv_usec, current_timestamp.tv_usec);
+    // then we diff the Mu second and add it to the diff;
+    diff += (double) (end->tv_usec - start->tv_usec) / MU;
+    // fprintf (stdout, "diff: %e\n", diff);
+    // printf("start: %li\nend: %li\n", start->tv_usec, end->tv_usec);
+
+    return diff;
+}
+
+double get_current_time_diff(struct timeval *message_timestamp){
 
     struct timeval current_timestamp;
-    // the second argument of gettimeofday can be set:
-    // to specifique timezone
-    // we set NULL to let the kernel set the timezone
     gettimeofday(&current_timestamp, NULL);
 
-    unsigned long time_difference;
-    time_difference = 0;
-    // lettre grec Mu 10^(-6) is write u
-    unsigned long Mu_time_difference;
-    Mu_time_difference = 0;
 
+    double diff = get_time_diff(message_timestamp, &current_timestamp);
 
-    time_difference = current_timestamp.tv_sec - message_timestamp.tv_sec;
-    Mu_time_difference = current_timestamp.tv_usec - message_timestamp.tv_usec;
-    printf("Seconds: %lu\nMicroseconds: %lu\n", time_difference, Mu_time_difference);
-    printf("Previous Second: %lu\nCurrent Seconds: %lu\n", message_timestamp.tv_sec, current_timestamp.tv_sec);
-    printf("Previous MU Second: %lu\nCurrent MU Seconds: %lu\n", message_timestamp.tv_usec, current_timestamp.tv_usec);
-
-    unsigned long diff = (time_difference * 1000) + Mu_time_difference;
 
     return (diff);
 }
 
 
-void *create_timestamp(void *destination){
+void *set_timestamp(void *destination){
 
     // there is the struct timespec that can store nano second
     struct timeval timestamp;

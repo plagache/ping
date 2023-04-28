@@ -27,7 +27,8 @@
 
 
 
-// #define IP_MAX_SIZE 65535
+#define IP_MAX_SIZE 65535
+#define MU 1000000
 // #define BUFFER_SIZE 1024
 // #define PACKET_SIZE 4096
 #define PACKET_SIZE 64
@@ -78,8 +79,10 @@ typedef struct          s_icmp_packet_reply
 {
     struct              iphdr ip_header;
     struct              icmphdr icmp_header;
-    struct              timeval timestamp;
-    uint8_t             data;
+    // char                data[IP_MAX_SIZE];
+    char                data[PACKET_SIZE - sizeof(struct iphdr) - sizeof(struct icmphdr)];
+    // struct              timeval timestamp;
+    // uint8_t             data;
 
 }                       t_icmp_packet_reply;
 
@@ -90,6 +93,13 @@ typedef struct          s_icmp_packet
     char                data[PACKET_SIZE - sizeof(struct icmphdr)];
 
 }                       t_icmp_packet ;
+
+
+typedef struct          s_ip_packet
+{
+    struct              iphdr ip_header;
+    void                *data;
+}                       t_ip_packet;
 
 
 typedef struct          s_ft_ping
@@ -174,8 +184,10 @@ void create_icmp_packet();
 
 
 /* timestamp */
-unsigned long compare_timestamp(struct timeval message_timestamp);
-void *create_timestamp(void *destination);
+
+double get_time_diff(struct timeval *start, struct timeval *end);
+double get_current_time_diff(struct timeval *message_timestamp);
+void *set_timestamp(void *destination);
 
 
 /* request */

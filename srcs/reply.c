@@ -1,4 +1,5 @@
 #include "ft_ping.h"
+#include <bits/types/struct_timeval.h>
 
 int check_reply_validity(t_icmp_packet_reply* echo_reply){
 
@@ -53,13 +54,15 @@ void print_information_from_received_message(t_icmp_packet_reply* echo_reply){
         //         g_ping->program_id,
         //         echo_reply->icmp_header.un.echo.id
         //         );
+    // print_memory(echo_reply, sizeof(t_icmp_packet_reply));
+    // print_memory(&echo_reply->data, sizeof(struct timeval));
     if (echo_reply->icmp_header.un.echo.id == g_ping->program_id){
         fprintf(stdout, "%lu bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
                 g_ping->bytes_received - sizeof(struct iphdr),
                 source_address_string,
                 echo_reply->icmp_header.un.echo.sequence,
                 echo_reply->ip_header.ttl,
-                (double)compare_timestamp(echo_reply->timestamp) / 1000
+                (double)get_current_time_diff((struct timeval*)echo_reply->data) * 1000
                 );
     }
 }

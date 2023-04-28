@@ -69,7 +69,7 @@ void hostname_to_struct(){
     getaddrinfo_return = getaddrinfo(g_ping->hostname, NULL, &hints, &result);
     g_ping->ipv4_address = *(struct sockaddr_in *) result->ai_addr;
     char internet_address_string[INET_ADDRSTRLEN];
-    inet_ntop(hints.ai_family, &g_ping->ipv4_address, internet_address_string, sizeof internet_address_string);
+    inet_ntop(hints.ai_family, &g_ping->ipv4_address.sin_addr, internet_address_string, sizeof internet_address_string);
     fprintf(stdout, "%s | getaddrinfo return : %i\n", internet_address_string, getaddrinfo_return);
 
     unsigned char* bytes = (unsigned char*)&g_ping->ipv4_address.sin_addr;

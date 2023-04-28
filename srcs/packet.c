@@ -24,7 +24,7 @@ void create_icmp_packet(){
     packet.header.checksum = 0;
 
     // timestamp_creation(&packet.data, data_size);
-    create_timestamp(&packet.data);
+    set_timestamp(&packet.data);
 
 
     // We calculate checksum and put it in the correct field
