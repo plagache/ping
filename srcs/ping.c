@@ -44,14 +44,12 @@ int main(int ac, char **av){
 
     setting_socket_option();
 
-    // iterate here
-    // first printf example :
-    // PING Host IP in string 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
-    fprintf(stdout, "PING %s (%s) %lu(%lu) bytes of data.\n",
+    // [0] ping google.com
+    // PING google.com (172.217.20.206): 56 data bytes
+    fprintf(stdout, "PING %s (%s) %lu data bytes\n",
             g_ping->host,
             g_ping->ip_address,
-            PACKET_DATA_SIZE,
-            sizeof(struct iphdr) + PACKET_SIZE
+            PACKET_DATA_SIZE
             );
 
     while(g_ping->count != g_ping->sequence_number && g_ping->sequence_number != 0){
