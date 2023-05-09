@@ -53,8 +53,8 @@ void print_information_from_received_message(t_icmp_packet_reply* echo_reply){
         //         g_ping->program_id,
         //         echo_reply->icmp_header.un.echo.id
         //         );
-    // print_memory(echo_reply, sizeof(t_icmp_packet_reply));
-    // print_memory(&echo_reply->data, sizeof(struct timeval));
+    // hex_dump(echo_reply, sizeof(t_icmp_packet_reply));
+    // hex_dump(&echo_reply->data, sizeof(struct timeval));
     if (echo_reply->icmp_header.un.echo.id == g_ping->program_id){
         fprintf(stdout, "%lu bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
                 g_ping->bytes_received - sizeof(struct iphdr),

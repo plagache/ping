@@ -209,6 +209,6 @@ void stop_program(int signal_number);
 
 /* print_memory */
 
-void print_memory(void *buffer, ssize_t size);
+void hex_dump(void *buffer, ssize_t size);
 
 #endif

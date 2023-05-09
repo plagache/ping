@@ -31,7 +31,7 @@ void ip_address_to_struct(){
     s = inet_pton(AF_INET, g_ping->host, &g_ping->ipv4_address.sin_addr); // transform an IP address string to binary
 
     unsigned char* bytes = (unsigned char*)&g_ping->ipv4_address.sin_addr;
-    // print_memory(&g_ping->network_address->sin_addr , sizeof(g_ping->network_address->sin_addr));
+    // print_memory(&g_ping->ipv4_address.sin_addr , sizeof(g_ping->ipv4_address.sin_addr));
     printf("Bytes IP address: %d.%d.%d.%d\n", bytes[0], bytes[1], bytes[2], bytes[3]);
 
 
@@ -73,7 +73,7 @@ void hostname_to_struct(){
     fprintf(stdout, "%s | getaddrinfo return : %i\n", internet_address_string, getaddrinfo_return);
 
     unsigned char* bytes = (unsigned char*)&g_ping->ipv4_address.sin_addr;
-    // print_memory(&g_ping->network_address->sin_addr , sizeof(g_ping->network_address->sin_addr));
+    // hex_dump(&g_ping->ipv4_address.sin_addr , sizeof(g_ping->ipv4_address.sin_addr));
     printf("Bytes IP address: %d.%d.%d.%d\n", bytes[0], bytes[1], bytes[2], bytes[3]);
     g_ping->ip_address = internet_address_string;
     // fprintf (stderr, "address = %s\n", (char *)g_ping->result->ai_addr);
